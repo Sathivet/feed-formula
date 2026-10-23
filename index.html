@@ -818,7 +818,7 @@ function buildLP(skipK,onlyK){
   {const j=vars.findIndex(i=>i.id==="lc40");const mn=CONC_MIN[STAGE];if(j>=0&&mn){const r=vars.map((_,q)=>q===j?1:0);A.push(r);b.push(mn/100*T*0.998);ty.push("ge");labels.push("min:lc40")}}
   return {vars,A,b,ty,c:vars.map(i=>PRICE[i.id])};
 }
-function lcNeedPrice(){const g=LGROUP[STAGE]??2;return ING.filter(i=>isUsed(i)&&!i.med&&!LC_FIXED.includes(i.id)&&!(PRICE[i.id]>0)&&!(i.lib&&!(KG[i.id]>0)&&USE[i.id]!==true)&&!(LIMITS[i.id]&&LIMITS[i.id][g]===0))}
+function lcNeedPrice(){const g=LGROUP[STAGE]??2;return ING.filter(i=>{if(!isUsed(i)||PRICE[i.id]>0)return false;if(LIMITS[i.id]&&LIMITS[i.id][g]===0)return false;const has=(KG[i.id]||0)>0;if(LC_FIXED.includes(i.id)||i.med)return has;return has||!(i.lib&&USE[i.id]!==true)})}
 function lcStatus(){const need=lcNeedPrice(),ids=need.map(i=>i.id);
   document.querySelectorAll("#ingTable input[data-pid]").forEach(el=>el.classList.toggle("needprice",ids.includes(el.dataset.pid)));
   const b=$("#lcBtn"),sp=$("#lcNeed");if(!b)return;
@@ -828,7 +828,7 @@ function leastCost(){
   const box=$("#lcMsg");
   const msg=(t,ok)=>{box.innerHTML=t;box.className="wtalert "+(ok?"ok":"bad");box.scrollIntoView({behavior:"smooth",block:"center"})};
   {const need=lcNeedPrice();if(need.length){lcStatus();
-    msg(`<b>⚠ Price missing – least-cost not run.</b><br>Enter ₹/kg in the price box (red) for: <b>${need.map(i=>i.n).join(", ")}</b>.<br>Or untick the materials you don't have. Least-cost will run once every ticked material has a price.`,false);
+    msg(`<b>⚠ Price missing – least-cost not run.</b><br>Enter ₹/kg in the price box (red) for: <b>${need.map(i=>i.n).join(", ")}</b>.<br>This includes additives, premixes, binder and medicines that have kg in the batch. Or untick the materials you don't use. Least-cost runs once every ticked material has a price.`,false);
     const el=$("#pr_"+need[0].id);if(el)setTimeout(()=>{el.scrollIntoView({behavior:"smooth",block:"center"});el.focus()},400);return}}
   const unpriced=ING.filter(i=>isUsed(i)&&!i.med&&!LC_FIXED.includes(i.id)&&!(PRICE[i.id]>0)&&!(i.lib&&!(KG[i.id]>0)&&USE[i.id]!==true)).map(i=>i.n);
   const upTxt=(unpriced.length?`<br>Ticked but no ₹/kg price (not used): ${unpriced.join(", ")}. Enter them once in the ₹ Price list (saved for next time).`:"")+(()=>{const g=LGROUP[STAGE]??2;const off=ING.filter(i=>!isUsed(i)&&PRICE[i.id]>0&&!i.med&&!LC_FIXED.includes(i.id)&&!(LIMITS[i.id]&&LIMITS[i.id][g]===0)).map(i=>i.n);return off.length?`<br>Priced but <b>not ticked</b> (not used): ${off.join(", ")}. Tick them if you have them.`:""})();
@@ -881,6 +881,7 @@ function calc(){
    else if(!(PRICE[i.id]>0)&&!LC_FIXED.includes(i.id)&&!i.med){t="Price needed: enter ₹/kg to run least-cost";cls="bad2"}
    else if(!(PRICE[i.id]>0)){t="No price: not in cost";cls="mute"}
    else{t="OK";cls="okc"}
+   try{if(used&&lcNeedPrice().some(x=>x.id===i.id)&&!/^Price needed/.test(t)){t="Price needed: enter ₹/kg"+(t?" ("+t+")":"");cls="bad2"}}catch(e){}
    wy.textContent=t;wy.className="why "+cls}}
   }}if(PRICE[i.id]){cost+=kg*PRICE[i.id];costKnown=true}});
   $("#totKg").textContent=fmt(tot,2);
