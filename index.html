@@ -659,6 +659,10 @@ const saveMeds=()=>{try{localStorage.setItem("ff_meds",JSON.stringify(MEDS))}cat
 let KG=(store.get("ff_kver")===10&&store.get("ff_kg"))||{...PRESETS.cm.kg};
 let PRICE=store.get("ff_price")||{};
 let STAGE=(store.get("ff_kver")===10&&store.get("ff_stage"))||"chick";store.set("ff_kver",10);
+var PCATS={lc40:"Concentrate",premix:"Vitamin–mineral premix",tm:"Trace mineral premix",vitese:"Vitamin E + Selenium",vitc:"Vitamin C",emul:"Emulsifier",addit:"Other additive",enz:"Enzyme",vitd3:"Vitamin D3",phytase:"Phytase"};
+var PRODUCTS=store.get("ff_products")||null, SEL=store.get("ff_sel")||{};
+if(!PRODUCTS){PRODUCTS={premix:[],enz:[{name:"Polyzyme XAP",dose:400,d3:0,me:0,p:0,ca:0}],tm:[],vitd3:[],phytase:[]};SEL.enz=SEL.enz||"Polyzyme XAP";
+  try{const b=localStorage.getItem("ff_pmbrand");const pm=ING.find(i=>i.id==="premix");if(b&&pm&&pm.d3){PRODUCTS.premix.push({name:b,dose:0,d3:pm.d3,me:0,p:0,ca:0});SEL.premix=b}}catch(e){}}
 const $=s=>document.querySelector(s);
 
 const fmt=(v,d)=>Number(v).toLocaleString("en-IN",{minimumFractionDigits:d,maximumFractionDigits:d});
@@ -1088,10 +1092,6 @@ $("#scaleTo").addEventListener("change",()=>{const nw=parseFloat($("#scaleTo").v
   if(MATCH_ON&&nw>0&&LAST_SET>0&&Math.abs(nw-LAST_SET)>0.001){const fct=nw/LAST_SET;Object.keys(KG).forEach(k=>{if(!AUTO_IDS.includes(k))KG[k]=Math.round(KG[k]*fct*100)/100});buildIng()}
   if(nw>0)LAST_SET=nw;calc()});
 $("#scaleTo").addEventListener("input",()=>{if(!MATCH_ON)calc()});
-var PCATS={lc40:"Concentrate",premix:"Vitamin–mineral premix",tm:"Trace mineral premix",vitese:"Vitamin E + Selenium",vitc:"Vitamin C",emul:"Emulsifier",addit:"Other additive",enz:"Enzyme",vitd3:"Vitamin D3",phytase:"Phytase"};
-var PRODUCTS=store.get("ff_products")||null, SEL=store.get("ff_sel")||{};
-if(!PRODUCTS){PRODUCTS={premix:[],enz:[{name:"Polyzyme XAP",dose:400,d3:0,me:0,p:0,ca:0}],tm:[],vitd3:[],phytase:[]};SEL.enz=SEL.enz||"Polyzyme XAP";
-  try{const b=localStorage.getItem("ff_pmbrand");const pm=ING.find(i=>i.id==="premix");if(b&&pm&&pm.d3){PRODUCTS.premix.push({name:b,dose:0,d3:pm.d3,me:0,p:0,ca:0});SEL.premix=b}}catch(e){}}
 if(!store.get("ff_seed_rb")){const rb={name:"Rich Blend NDS 01 (Mega Care)",dose:500,d3:0,me:0,p:0,ca:0,price:450,vit:{vA:25,vD3:8,vE:16,vK3:4,vB1:2,vB2:12.5,vB6:3.2,vB12:32,vNia:24,vPan:16,vFol:2,vBio:100}};
   PRODUCTS.premix=(PRODUCTS.premix||[]).filter(x=>x.name!==rb.name);PRODUCTS.premix.push(rb);store.set("ff_products",PRODUCTS);store.set("ff_seed_rb",1)}
 const saveProds=()=>{store.set("ff_products",PRODUCTS);store.set("ff_sel",SEL)};
