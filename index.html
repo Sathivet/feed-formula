@@ -1,0 +1,1230 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>body{margin:0;font-family:system-ui,sans-serif;font-size:14px}[hidden]{display:none!important}</style>
+<title>Feed Formula</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#2f6b45">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=Source+Sans+3:wght@400;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: a single-column mill batch ticket — ingredients in, analysis out, then the learning tools */
+:root{
+  --bg:#f3f5f2; --surface:#ffffff; --ink:#1d2621; --muted:#5d6b63; --line:#d6ddd8;
+  --accent:#2f6b45; --accent-ink:#ffffff; --maize:#c99a12;
+  --ok:#2f7d4a; --ok-bg:#e3f2e8; --low:#b5560f; --low-bg:#fbeadc; --high:#9a2b4a; --high-bg:#f8e1e8;
+  --field:#f7f9f7;
+  --display:"Archivo",system-ui,sans-serif; --body:"Source Sans 3",system-ui,sans-serif; --mono:"JetBrains Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#141a16; --surface:#1c241f; --ink:#e6ece8; --muted:#9aaaa1; --line:#2e3a33;
+  --accent:#6fbf8a; --accent-ink:#0f1a13; --maize:#e2b83a;
+  --ok:#7fd39a; --ok-bg:#1f3427; --low:#f0a35e; --low-bg:#3a2a1b; --high:#f08aa7; --high-bg:#3a1f28;
+  --field:#18201b; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#141a16; --surface:#1c241f; --ink:#e6ece8; --muted:#9aaaa1; --line:#2e3a33;
+  --accent:#6fbf8a; --accent-ink:#0f1a13; --maize:#e2b83a;
+  --ok:#7fd39a; --ok-bg:#1f3427; --low:#f0a35e; --low-bg:#3a2a1b; --high:#f08aa7; --high-bg:#3a1f28;
+  --field:#18201b; color-scheme:dark}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.45}
+.wrap{max-width:1180px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 48px;display:flex;flex-direction:column;gap:20px}
+header h1{font-family:var(--display);font-weight:800;font-size:1.7rem;margin:0;letter-spacing:-.01em;text-wrap:balance}
+header p{margin:6px 0 0;color:var(--muted);max-width:62ch}
+.eyebrow{font-family:var(--mono);font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--maize);margin-bottom:6px}
+section{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:12px;min-width:0}
+h2{font-family:var(--display);font-weight:700;font-size:1.15rem;margin:0}
+.hint{color:var(--muted);font-size:.92rem;margin:0}
+.controls{display:flex;flex-wrap:wrap;gap:10px;align-items:end}
+label.f{display:flex;flex-direction:column;gap:4px;font-size:.8rem;color:var(--muted)}
+select,input{font:inherit;color:var(--ink);background:var(--field);border:1px solid var(--line);border-radius:6px;padding:7px 9px}
+input.num{font-family:var(--mono);width:100%;text-align:right;font-variant-numeric:tabular-nums}
+button{font:inherit;font-weight:600;border-radius:6px;padding:8px 12px;border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink);cursor:pointer}
+button.ghost{background:transparent;color:var(--accent)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--maize);outline-offset:2px}
+.scroll{overflow-x:auto;min-width:0}
+table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}
+th,td{padding:6px 6px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+th{font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600}
+th:first-child,td:first-child{text-align:left}
+td.name{font-weight:600;white-space:normal}
+td.pct{font-family:var(--mono);color:var(--muted);font-size:.85rem}
+tfoot td{font-weight:700;border-bottom:none;font-family:var(--mono)}
+.kg{width:130px}
+#ingTable input.num{font-size:1.05rem;padding:8px 12px;height:46px;box-sizing:border-box;min-width:110px}
+#ingTable td{padding:8px 8px}
+.pricegrid input,.vitgrid input,.pform input,.pform select,.savebox input,#scaleTo{font-size:1.05rem;padding:8px 12px;height:46px;box-sizing:border-box}
+select.prod{font-size:.95rem!important;padding:4px 8px!important;height:38px;box-sizing:border-box}
+td.use input{width:24px!important;height:24px!important}
+.vals input{width:96px;padding:6px 8px;font-size:1rem;height:40px;box-sizing:border-box}
+.res{display:flex;flex-direction:column;gap:8px}
+.row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 10px;padding:10px 0;border-bottom:1px solid var(--line)}
+.row:last-child{border-bottom:none}
+.row .lbl{font-weight:600}
+.row .val{font-family:var(--mono);font-weight:600;text-align:right}
+.row .band{font-size:.82rem;color:var(--muted)}
+.row.bad{background:var(--high-bg);border-left:4px solid var(--high);padding-left:10px;padding-right:10px;border-radius:6px;border-bottom-color:transparent;margin-block:3px}
+.row.bad .lbl,.row.bad .val{color:var(--high)}
+.row.bad .chip{background:var(--high);color:var(--surface)}
+.row .effect{grid-column:1/-1;font-size:.86rem;color:var(--high);font-weight:600}
+.row.bad .tip{color:var(--ink)}
+.row .tip{grid-column:1/-1;font-size:.85rem;color:var(--muted)}
+.chip{display:inline-block;font-family:var(--mono);font-size:.7rem;font-weight:600;letter-spacing:.06em;padding:2px 7px;border-radius:99px;margin-left:6px;vertical-align:1px}
+.chip.ok{background:var(--ok-bg);color:var(--ok)} .chip.low{background:var(--low-bg);color:var(--low)} .chip.high{background:var(--high-bg);color:var(--high)}
+.bar{grid-column:1/-1;position:relative;height:8px;background:var(--field);border:1px solid var(--line);border-radius:99px;overflow:hidden}
+.bar .zone{position:absolute;top:0;bottom:0;background:var(--ok-bg)}
+.bar .mark{position:absolute;top:-1px;bottom:-1px;width:3px;background:var(--ink);border-radius:2px}
+.summary{display:flex;flex-wrap:wrap;gap:8px 16px;font-family:var(--mono);font-size:.9rem}
+.summary b{color:var(--accent)}
+.steps{margin:0;padding-left:1.2em;display:flex;flex-direction:column;gap:6px;max-width:65ch}
+details summary{cursor:pointer;font-weight:600;color:var(--accent)}
+footer{color:var(--muted);font-size:.82rem}
+tr.over td{background:var(--high-bg)}
+tr.over td.name,tr.over td.pct{color:var(--high);font-weight:700}
+tr.over input{border-color:var(--high)}
+td.max{color:var(--accent);font-weight:600}
+tr.over td.max{color:var(--high)}
+.d3box{border:1px dashed var(--line);border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:8px;background:var(--field)}
+.d3title{font-weight:700;font-size:.95rem}
+.d3box .hint{font-size:.85rem}
+.pform{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;align-items:end}
+.pform button{justify-self:start}
+select.prod{display:block;margin-top:4px;font-size:.82rem;padding:4px 6px;max-width:100%;font-weight:400}
+.plist{display:flex;flex-direction:column;gap:6px}
+.pitem{display:flex;justify-content:space-between;align-items:center;gap:10px;border-top:1px solid var(--line);padding-top:6px;min-width:0}
+.pitem>div{min-width:0}
+button.sm{padding:4px 10px;font-size:.82rem}
+.vitset{grid-column:1/-1;border:1px solid var(--line);border-radius:8px;padding:10px;margin:0;min-width:0}
+.vitset legend{font-weight:600;font-size:.85rem;padding:0 4px}
+.vitgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px}
+.vitbox{display:flex;flex-direction:column;gap:8px;margin-top:14px}
+.vith{font-family:var(--display);font-size:1.05rem;margin:10px 0 0;padding-top:10px;border-top:2px solid var(--line)}
+#vitTable td{white-space:normal}
+#vitTable tr.over td{background:var(--high-bg)}
+#vitTable tr.over td.name{color:var(--high);font-weight:700}
+#minTable td{white-space:normal}
+#minTable tr.over td{background:var(--high-bg)}
+#minTable tr.over td.name{color:var(--high);font-weight:700}
+.chip.low{background:var(--high-bg);color:var(--high)}
+input.auto{background:var(--ok-bg)!important;color:var(--ok);font-weight:600}
+tr.remind td{background:var(--low-bg)}
+tr.remind .warn{color:var(--low)}
+#ingTable th:nth-child(2),#ingTable td.name{text-align:left}
+td.use{width:34px;text-align:center}
+td.use input{width:18px;height:18px;accent-color:var(--accent)}
+tr.unused td{opacity:.45}
+tr.unused td.use{opacity:1}
+.medbox{border:1px dashed var(--line);border-radius:8px;padding:10px 12px;background:var(--field)}
+.medbox summary{cursor:pointer;font-weight:700;color:var(--accent)}
+.medbox form{margin-top:10px}
+button.medx{margin-left:6px;vertical-align:1px}
+td.why{font-size:.78rem;white-space:normal;min-width:130px;text-align:left;line-height:1.25}
+td.why.mute{color:var(--muted)}
+td.why.warn2{color:var(--low);font-weight:600}
+td.why.bad2{color:var(--high);font-weight:600}
+td.why.okc{color:var(--ok)}
+.savebox{display:flex;flex-wrap:wrap;gap:10px;align-items:end;padding-top:10px;border-top:1px solid var(--line)}
+.filebtn{display:inline-flex;align-items:center;font-weight:600;border-radius:6px;padding:8px 12px;border:1px solid var(--accent);color:var(--accent);cursor:pointer}
+.filebtn:focus-within{outline:2px solid var(--maize);outline-offset:2px}
+.pricegrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+input.matchfill{background:var(--ok-bg)!important;color:var(--ok);font-weight:600;outline:1px dashed var(--ok)}
+td.kgcell{white-space:nowrap}
+td.keepcell{text-align:center;width:48px}
+td.keepcell input{width:20px;height:20px;accent-color:var(--accent)}
+.keep{display:inline-flex;align-items:center;gap:4px;margin-left:6px;font-size:.78rem;color:var(--muted);cursor:pointer;vertical-align:middle}
+.keep input{width:16px;height:16px;accent-color:var(--accent)}
+input.askkg{outline:3px solid var(--maize)!important}
+.tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding-top:6px}
+.tabs button{flex:0 0 auto;background:var(--surface);color:var(--ink);border:1px solid var(--line);font-weight:600;padding:9px 14px;border-radius:999px}
+.tabs button.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.mtable input.num{width:84px;padding:6px 8px;height:38px;box-sizing:border-box;font-size:.95rem}
+.mtable input[type=text]{min-width:150px;padding:6px 8px;height:38px;box-sizing:border-box}
+.mtable td,.mtable th{padding:4px 5px;text-align:center}
+.mtable td.name,.mtable th:first-child{text-align:left;position:sticky;left:0;background:var(--surface);z-index:1;min-width:150px}
+input.badin{outline:2px solid var(--high)}
+.wtalert{font-size:.92rem;border-radius:8px;padding:10px 12px}
+.wtalert:empty{display:none}
+.wtalert.ok{background:var(--ok-bg);color:var(--ok);font-weight:600}
+.wtalert.bad{background:var(--high-bg);color:var(--high);border-left:4px solid var(--high)}
+.warn{font-size:.78rem;font-weight:600;color:var(--high);line-height:1.3;margin-top:2px}
+.warn:empty{display:none}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+#printHead{display:none}
+@media print{
+  :root{--bg:#fff;--surface:#fff}
+  body{background:#fff}
+  .controls,.hint,footer,header p,.eyebrow,#ingTable td:nth-child(6),#ingTable th:nth-child(6),#ingTable td:nth-child(7),#ingTable th:nth-child(7),#ingTable td:nth-child(1),#ingTable th:nth-child(1),tr.unused,.wtalert.ok,details,section:has(.steps),section:first-of-type{display:none!important}
+  #printHead{display:block;font-family:var(--display);font-weight:700;font-size:1rem;margin-bottom:6px}
+  tr.zero{display:none}
+  section{border:none;padding:0;break-inside:avoid}
+  input{border:none!important;background:none!important;padding:0!important}
+  .bar{display:none}
+  .wrap{max-width:none;padding:0}
+}
+</style>
+
+</head><body>
+<div class="wrap">
+<div id="printHead"></div>
+<header>
+  <div class="eyebrow">Vetrivel Farm · feed formulation software</div>
+  <h1>Feed Formula</h1>
+  <p>Masters hold your raw materials, products, medicines, stage targets and prices. Formulation uses them to build, check and cost each batch.</p>
+</header>
+<nav class="tabs" id="tabs" role="tablist" aria-label="Sections">
+  <button type="button" role="tab" data-go="form">Formulation</button>
+  <button type="button" role="tab" data-go="raw">Raw material master</button>
+  <button type="button" role="tab" data-go="products">Product master</button>
+  <button type="button" role="tab" data-go="meds">Medicine master</button>
+  <button type="button" role="tab" data-go="targets">Stage targets</button>
+  <button type="button" role="tab" data-go="prices">Prices</button>
+  <button type="button" role="tab" data-go="saved">Saved formulas</button>
+  <button type="button" role="tab" data-go="help">Help</button>
+</nav>
+
+<section data-tab="form">
+  <h2>1. Choose stage and starting formula</h2>
+  <div class="controls">
+    <label class="f">Target stage
+      <select id="stage"></select>
+    </label>
+    <label class="f">Load a formula
+      <select id="preset"></select>
+    </label>
+    <button id="loadBtn" type="button">Load</button>
+    <button id="clearBtn" class="ghost" type="button">Clear all kg</button>
+    <button id="delSavedBtn" class="ghost" type="button" hidden>Delete this saved formula</button>
+  </div>
+  <div class="savebox">
+    <label class="f" style="flex:1;min-width:200px">Save current formula as
+      <input id="saveName" type="text" placeholder="e.g. Chick mash Oct 2026 – 26000 birds">
+    </label>
+    <button id="saveBtn" type="button">Save formula</button>
+    <button id="exportBtn" class="ghost" type="button">Export all (backup file)</button>
+    <label class="ghost filebtn">Import backup<input type="file" id="importFile" accept=".json,application/json" hidden></label>
+  </div>
+  <p class="hint" id="saveMsg" aria-live="polite">Saved formulas appear at the top of “Load a formula”. Use Export to keep a backup or move formulas to another computer, and Import there.</p>
+  
+</section>
+
+<section data-tab="form">
+  <h2>2. Ingredients (kg in batch)</h2>
+  <div class="scroll">
+    <table id="ingTable">
+      <thead><tr><th title="Tick the materials you have">Use</th><th>Ingredient</th><th>kg</th><th>% of mix</th><th>Max %</th><th>₹/kg</th><th title="Tick to keep this kg fixed in least-cost">Keep</th><th>Why blank / note</th></tr></thead>
+      <tbody></tbody>
+      <tfoot><tr><td></td><td>Total</td><td id="totKg">0</td><td>100%</td><td></td><td id="totCost">—</td><td></td><td></td></tr></tfoot>
+    </table>
+  </div>
+  <div class="wtalert" id="wtAlert" role="status"></div>
+  <details class="medbox" id="priceBox">
+    <summary>₹ Price list – enter once, saved on this computer</summary>
+    <p class="hint" style="margin:8px 0">Prices stay saved until you change them. Update only when market rates change. They are also included in Export / Import.</p>
+    <div class="pricegrid" id="priceGrid"></div>
+    <p class="hint" id="priceMsg"></p>
+  </details>
+  <details class="medbox" id="medBox">
+    <summary>+ Add a medicine or additive</summary>
+    <form id="medForm" class="pform">
+      <label class="f">Name<input id="mdName" type="text" required placeholder="e.g. Doxycycline 20%"></label>
+      <label class="f">Dose (g per ton of feed)<input id="mdDose" class="num" type="number" min="0" step="1" required placeholder="e.g. 500"></label>
+      <label class="f">Price (₹ per kg)<input id="mdPrice" class="num" type="number" min="0" step="0.5" placeholder="optional"></label>
+      <label class="f">Withdrawal / note<input id="mdNote" type="text" placeholder="e.g. 5 days, vet advice, not for layers"></label>
+      <fieldset class="vitset"><legend>Allowed in</legend>
+        <div class="controls">
+          <label class="f" style="flex-direction:row;align-items:center;gap:6px"><input type="checkbox" id="mdChick" checked> Chick</label>
+          <label class="f" style="flex-direction:row;align-items:center;gap:6px"><input type="checkbox" id="mdGrower" checked> Grower / developer</label>
+          <label class="f" style="flex-direction:row;align-items:center;gap:6px"><input type="checkbox" id="mdLayer"> Pre-lay / layer</label>
+        </div>
+      </fieldset>
+      <button type="submit">Add to table</button>
+    </form>
+    <p class="hint" id="mdMsg" aria-live="polite">The medicine gets its own row with the dose filled in for this batch. Max % is set to twice the dose; stages not ticked show "Not used" and turn red if it is added there.</p>
+  </details>
+
+  <p class="hint" id="lcMsg" aria-live="polite">Only ticked materials are checked and used. Typing kg ticks a row automatically. Least-cost uses only ticked materials with a ₹/kg price and meets every nutrient target and Max % for the stage. Additives and medicines stay as they are.</p>
+  <div class="d3box" id="prodLib">
+    <div class="d3title">My products <span class="hint">· premix, enzyme, trace mineral, vitamin D3, phytase</span></div>
+    <p class="hint">Save each brand once with its label values. Then pick it from the drop-down under that ingredient in the table. When you change brand, just pick the other one.</p>
+    <form id="prodForm" class="pform">
+      <label class="f">Type
+        <select id="pfCat"></select>
+      </label>
+      <label class="f">Brand name
+        <input id="pfName" type="text" required placeholder="name on the bag">
+      </label>
+      <label class="f" data-show="premix tm vitese vitc vitd3 enz phytase emul addit">Label dose (g per ton)
+        <input id="pfDose" class="num" type="number" min="0" step="1" placeholder="e.g. 250">
+      </label>
+      <label class="f" data-show="vitd3">D3 (IU per kg of product)
+        <input id="pfD3" class="num" type="number" min="0" step="1000" placeholder="from label">
+      </label>
+      <label class="f" data-show="enz phytase emul addit">At that dose adds ME (kcal/kg)
+        <input id="pfMe" class="num" type="number" step="1" placeholder="0">
+      </label>
+      <label class="f" data-show="enz phytase emul addit">adds avail. P (%)
+        <input id="pfP" class="num" type="number" step="0.01" placeholder="0">
+      </label>
+      <label class="f" data-show="enz phytase emul addit">adds Ca (%)
+        <input id="pfCa" class="num" type="number" step="0.01" placeholder="0">
+      </label>
+      <fieldset data-show="premix" class="vitset">
+        <legend>Composition per kg of premix (as printed on the bag)</legend>
+        <div class="vitgrid">
+          <label class="f">Vitamin A (MIU)<input id="pv_vA" class="num" type="number" step="0.01" min="0"></label>
+          <label class="f">Vitamin D3 (MIU)<input id="pv_vD3" class="num" type="number" step="0.01" min="0"></label>
+          <label class="f">Vitamin E (g)<input id="pv_vE" class="num" type="number" step="0.01" min="0"></label>
+          <label class="f">Vitamin K3 (g)<input id="pv_vK3" class="num" type="number" step="0.01" min="0"></label>
+          <label class="f">Vitamin B1 (g)<input id="pv_vB1" class="num" type="number" step="0.01" min="0"></label>
+          <label class="f">Vitamin B2 (g)<input id="pv_vB2" class="num" type="number" step="0.01" min="0"></label>
+          <label class="f">Vitamin B6 (g)<input id="pv_vB6" class="num" type="number" step="0.01" min="0"></label>
+          <label class="f">Vitamin B12 (mg)<input id="pv_vB12" class="num" type="number" step="0.01" min="0"></label>
+          <label class="f">Niacin (g)<input id="pv_vNia" class="num" type="number" step="0.01" min="0"></label>
+          <label class="f">Ca D-pantothenate (g)<input id="pv_vPan" class="num" type="number" step="0.01" min="0"></label>
+          <label class="f">Folic acid (g)<input id="pv_vFol" class="num" type="number" step="0.01" min="0"></label>
+          <label class="f">Biotin (mg)<input id="pv_vBio" class="num" type="number" step="0.01" min="0"></label>
+        </div>
+      </fieldset>
+      <fieldset data-show="lc40" class="vitset">
+        <legend>Concentrate analysis (% as printed on bag or lab report)</legend>
+        <div class="vitgrid">
+          <label class="f">Inclusion (kg per ton)<input id="pk_rate" class="num" type="number" step="1" min="0" placeholder="e.g. 400"></label>
+          <label class="f">CP %<input id="pk_cp" class="num" type="number" step="0.01"></label>
+          <label class="f">ME kcal/kg<input id="pk_me" class="num" type="number" step="1"></label>
+          <label class="f">Crude fibre %<input id="pk_cf" class="num" type="number" step="0.01"></label>
+          <label class="f">Calcium %<input id="pk_ca" class="num" type="number" step="0.01"></label>
+          <label class="f">Avail. P %<input id="pk_avp" class="num" type="number" step="0.01"></label>
+          <label class="f">Sodium %<input id="pk_na" class="num" type="number" step="0.01"></label>
+          <label class="f">Potassium %<input id="pk_k" class="num" type="number" step="0.01"></label>
+          <label class="f">Chloride %<input id="pk_cl" class="num" type="number" step="0.01"></label>
+          <label class="f">Lysine %<input id="pk_lys" class="num" type="number" step="0.01"></label>
+          <label class="f">Methionine %<input id="pk_met" class="num" type="number" step="0.01"></label>
+          <label class="f">Met + Cys %<input id="pk_tsaa" class="num" type="number" step="0.01"></label>
+          <label class="f">Threonine %<input id="pk_thr" class="num" type="number" step="0.01"></label>
+          <label class="f">Sand / silica %<input id="pk_sand" class="num" type="number" step="0.01"></label>
+        </div>
+        <div class="controls" style="margin-top:8px">
+          <label class="f" style="flex-direction:row;align-items:center;gap:6px"><input type="checkbox" id="pk_hasVit" checked> Contains vitamins</label>
+          <label class="f" style="flex-direction:row;align-items:center;gap:6px"><input type="checkbox" id="pk_hasTm" checked> Contains trace minerals</label>
+          <label class="f" style="flex-direction:row;align-items:center;gap:6px"><input type="checkbox" id="pk_hasBinder" checked> Contains toxin binder</label>
+        </div>
+        <p class="hint">Lysine, methionine, sodium and potassium count from the values above. Ticked items are not added again automatically while the concentrate is used at 90% or more of its inclusion rate.</p>
+      </fieldset>
+      <fieldset data-show="tm" class="vitset">
+        <legend>Composition per kg of trace mineral premix (as printed on the bag)</legend>
+        <div class="vitgrid">
+          <label class="f">Zinc (g)<input id="pm_mZn" class="num" type="number" step="0.01" min="0"></label>
+          <label class="f">Iron (g)<input id="pm_mFe" class="num" type="number" step="0.01" min="0"></label>
+          <label class="f">Copper (g)<input id="pm_mCu" class="num" type="number" step="0.01" min="0"></label>
+          <label class="f">Selenium (mg)<input id="pm_mSe" class="num" type="number" step="1" min="0"></label>
+          <label class="f">Manganese (g)<input id="pm_mMn" class="num" type="number" step="0.01" min="0"></label>
+          <label class="f">Chromium (mg)<input id="pm_mCr" class="num" type="number" step="1" min="0"></label>
+          <label class="f">Iodine (g)<input id="pm_mI" class="num" type="number" step="0.01" min="0"></label>
+        </div>
+      </fieldset>
+      <fieldset data-show="vitese" class="vitset">
+        <legend>Composition per kg of product (as printed on the bag)</legend>
+        <div class="vitgrid">
+          <label class="f">Vitamin E (g)<input id="pe_vE" class="num" type="number" step="0.01" min="0"></label>
+          <label class="f">Selenium (mg)<input id="pe_mSe" class="num" type="number" step="1" min="0"></label>
+          <label class="f">Biotin (mg)<input id="pe_vBio" class="num" type="number" step="1" min="0"></label>
+        </div>
+        <p class="hint">If the label gives values per 100 g, multiply by 10.</p>
+      </fieldset>
+      <fieldset data-show="vitc" class="vitset">
+        <legend>Vitamin C content</legend>
+        <div class="vitgrid">
+          <label class="f">Vitamin C (%)<input id="pc_C" class="num" type="number" step="0.1" min="0" placeholder="e.g. 35 for C-35"></label>
+        </div>
+      </fieldset>
+      <label class="f">Price (₹ per kg)
+        <input id="pfPrice" class="num" type="number" min="0" step="0.5" placeholder="optional">
+      </label>
+      <button type="submit">Save brand</button>
+    </form>
+    <p class="hint" id="pfMsg" aria-live="polite"></p>
+    <div id="prodList" class="plist"></div>
+  </div>
+  <div class="controls">
+    <label class="f">Set batch weight (kg)
+      <input id="scaleTo" class="num" type="number" value="1050" min="1" style="width:110px">
+    </label>
+    <button id="scaleBtn" class="ghost" type="button">Scale all to set weight</button>
+    <button id="hideBtn" class="ghost" type="button" aria-pressed="false">Hide unticked rows</button>
+    <button id="newMedBtn" class="ghost" type="button">+ New medicine</button>
+    <button id="hideProdBtn" class="ghost" type="button">Hide My products</button>
+    <button id="hideVitBtn" class="ghost" type="button">Hide vitamins & trace minerals</button>
+    <button id="lcBtn" type="button">Find least-cost mix</button>
+    <button id="lcUndo" class="ghost" type="button" hidden>Undo least-cost</button>
+    <label class="f" style="flex-direction:row;align-items:center;gap:6px;font-size:.9rem"><input type="checkbox" id="matchOn"> Match set batch weight automatically by adjusting
+      <select id="fillerSel" aria-label="Ingredient used to match batch weight"></select></label>
+    <label class="f" style="flex-direction:row;align-items:center;gap:6px;font-size:.9rem"><input type="checkbox" id="autoAdd"> Add vitamins, minerals and additives automatically</label>
+    <label class="f" style="flex-direction:row;align-items:center;gap:6px;font-size:.9rem"><input type="checkbox" id="showAll"> Show full ingredient library (jowar, wheat, fish meal, DDGS and more)</label>
+  </div>
+</section>
+
+<section data-tab="form">
+  <h2>3. Analysis vs target</h2>
+  <div class="summary" id="summary"></div>
+  <div class="controls noprint-keep" id="pdfBox">
+    <label class="f" style="flex:1;min-width:200px">Formula name for PDF
+      <input id="pdfName" type="text" value="My feed formula">
+    </label>
+    <button id="pdfBtn" type="button">Print / Save as PDF</button>
+  </div>
+  <p class="hint" id="pdfMsg" aria-live="polite"></p>
+  <div class="res" id="results"></div>
+  <div class="vitbox">
+    <h3 class="vith">Vitamins (per kg of feed)</h3>
+    <div class="res" id="vitRows"></div>
+    <p class="hint">From the brands selected in the table. Vitamin D3 is shown above. Targets are typical minimums for the stage; maize and soya also supply some B vitamins.</p>
+    <h3 class="vith">Trace minerals (per kg of feed)</h3>
+    <div class="res" id="minRows"></div>
+    <p class="hint">From the trace mineral premix and Vitamin E + Se brands. Ranges are typical for organic minerals; maize, soya and DCP also supply some iron and manganese.</p>
+  </div>
+</section>
+
+<section data-tab="help" hidden>
+  <h2>Help: method</h2>
+  <ol class="steps">
+    <li>Pick the stage. Its targets come from the breed guide.</li>
+    <li>Fix the small items first: salt, DCP, grit, amino acids, binder and enzyme.</li>
+    <li>Balance protein between cereals (maize, broken rice) and protein sources (soya, LC40).</li>
+    <li>Add DCP until available P is on target, then grit for the rest of the Ca.</li>
+    <li>Top up lysine and methionine with synthetics instead of adding more soya.</li>
+    <li>Read the status chips, adjust, and repeat until every row says OK.</li>
+  </ol>
+  <details>
+    <summary>Edit ingredient nutrient values</summary>
+    <p class="hint" style="margin-top:8px">Values are per 100 kg (%), except ME in kcal/kg. Defaults follow the Skylark ingredient table you shared; LC40 uses your lab test (its lysine and methionine are estimates). Replace any value with your own lab results.</p>
+    <div class="scroll vals"><table id="valTable"><thead></thead><tbody></tbody></table></div>
+    <button id="resetVals" class="ghost" type="button" style="margin-top:10px;align-self:start">Reset to default values</button>
+  </details>
+</section>
+
+
+<section data-tab="raw" hidden>
+  <h2>Raw material master</h2>
+  <p class="hint">Nutrients are % of the material (ME in kcal/kg). Max % is the most allowed in the total feed for each stage group; 0 = not allowed. Changes apply to every formula at once. Built-in names are fixed; your own materials can be renamed or deleted.</p>
+  <div class="scroll"><table id="rawTable" class="mtable"><thead></thead><tbody></tbody></table></div>
+  <details class="medbox" id="rawAddBox">
+    <summary>+ Add a new raw material</summary>
+    <form id="rawForm" class="pform" style="margin-top:10px">
+      <label class="f">Name<input id="rwName" type="text" required placeholder="e.g. Rice DDGS"></label>
+      <div class="vitgrid" id="rwFields" style="grid-column:1/-1"></div>
+      <button type="submit">Add raw material</button>
+    </form>
+    <p class="hint" id="rwMsg" aria-live="polite"></p>
+  </details>
+  <button id="rawReset" class="ghost" type="button">Reset built-in values to defaults</button>
+</section>
+
+<section data-tab="products" hidden>
+  <h2>Product master</h2>
+  <p class="hint">Concentrates, premixes, trace minerals, vitamin E + Se, vitamin C, D3, enzymes, phytase, emulsifiers and other additives. Saved brands appear in the drop-down on their row in Formulation.</p>
+  <div id="prodHome"></div>
+</section>
+
+<section data-tab="meds" hidden>
+  <h2>Medicine master</h2>
+  <div id="medHome"></div>
+  <h3 class="vith">Your medicines</h3>
+  <div id="medList" class="plist"></div>
+</section>
+
+<section data-tab="targets" hidden>
+  <h2>Stage targets</h2>
+  <p class="hint">Min and max for each nutrient in each stage (% of feed; ME kcal/kg; D3 IU/kg; electrolyte balance mEq/kg). Edit to match your breed guide.</p>
+  <div class="scroll"><table id="tgTable" class="mtable"><thead></thead><tbody></tbody></table></div>
+  <h3 class="vith">Stage options</h3>
+  <div class="scroll"><table id="soTable" class="mtable"><thead><tr><th>Stage</th><th>Concentrate max %</th><th>Concentrate fixed % (0 = free)</th><th>Premix & trace mineral extra %</th></tr></thead><tbody></tbody></table></div>
+  <button id="tgReset" class="ghost" type="button">Reset targets and options to defaults</button>
+</section>
+
+<section data-tab="prices" hidden>
+  <h2>Prices</h2>
+  <div id="priceHome"></div>
+</section>
+
+<section data-tab="saved" hidden>
+  <h2>Saved formulas</h2>
+  <div id="savedList" class="plist"></div>
+  <div id="saveHome"></div>
+</section>
+<footer>Your formula is saved on this computer automatically. Use Print / Save as PDF to keep a copy (choose "Microsoft Print to PDF" or "Save as PDF"). Default nutrient values follow the Skylark ingredient table; your own lab analysis is always better.</footer>
+</div>
+
+<script>
+const NUTS=[
+ {k:"cp",n:"Crude protein",u:"%",d:2},{k:"me",n:"ME",u:" kcal/kg",d:0},{k:"cf",n:"Crude fibre",u:"%",d:2},
+ {k:"ca",n:"Calcium",u:"%",d:2},{k:"avp",n:"Available P",u:"%",d:2},{k:"na",n:"Sodium",u:"%",d:3},
+ {k:"lys",n:"Lysine",u:"%",d:2},{k:"met",n:"Methionine",u:"%",d:2},{k:"k",n:"Potassium (K)",u:"%",d:2},{k:"d3",n:"Vitamin D3",u:" IU/kg",d:0},{k:"tsaa",n:"Methionine + cystine",u:"%",d:2},{k:"thr",n:"Threonine",u:"%",d:2},{k:"cl",n:"Chloride",u:"%",d:3},{k:"deb",n:"Electrolyte balance (Na+K−Cl)",u:" mEq/kg",d:0,calc:true},{k:"la",n:"Linoleic acid",u:"%",d:2},{k:"sand",n:"Sand / silica",u:"%",d:2}];
+const DEFAULT_ING=[
+ {id:"maize",n:"Maize",cp:8.3,me:3300,cf:3.5,ca:0.08,avp:0.1,na:0.02,lys:0.24,k:0.3,met:0.16,d3:0,tsaa:0.26,thr:0.4,cl:0.05,la:1.9},
+ {id:"rice",n:"Broken rice",cp:7.5,me:2900,cf:3.0,ca:0.04,avp:0.05,na:0.02,lys:0.2,k:0.1,met:0.14,d3:0,tsaa:0.23,thr:0.3,cl:0.07,la:0.6},
+ {id:"soya",n:"Soya meal",cp:45,me:2300,cf:6.0,ca:0.29,avp:0.27,na:0.02,lys:2.75,k:2.0,met:0.6,d3:0,tsaa:1.3,thr:1.85,cl:0.05,la:0.4},
+ {id:"lc40",n:"Concentrate",sand:2.91,cp:28.8,me:2000,cf:9.94,ca:3.06,avp:0.7,na:0.307,lys:1.2,k:1.0,met:0.5,d3:0,tsaa:0.9,thr:1.0,cl:0.5,la:0.3},
+ {id:"gn",n:"GN cake (GNC)",cp:40,me:2700,cf:9.0,ca:0.16,avp:0.16,na:0.03,lys:1.32,k:1.2,met:0.42,d3:0,tsaa:0.95,thr:1.0,cl:0.03,la:2.4},
+ {id:"sfdoc",n:"Sunflower DOC",cp:28,me:1800,cf:26,ca:0.37,avp:0.3,na:0.02,lys:1.0,k:1.1,met:0.6,d3:0,tsaa:1.1,thr:1.15,cl:0.1,la:0.6},
+ {id:"dorb",n:"DORB",cp:14,me:1700,cf:14,ca:0.1,avp:0.25,na:0.03,lys:0.65,k:1.2,met:0.32,d3:0,tsaa:0.6,thr:0.6,cl:0.07,la:0.4},
+ {id:"oil",n:"Soya oil",cp:0,me:8800,cf:0,ca:0,avp:0,na:0,lys:0,k:0,met:0,d3:0,tsaa:0,thr:0,cl:0,la:52},
+ {id:"grit",n:"Shell grit / limestone",cp:0,me:0,cf:0,ca:38,avp:0,na:0,lys:0,k:0,met:0,d3:0,tsaa:0,thr:0,cl:0,la:0},
+ {id:"dcp",n:"DCP",cp:0,me:0,cf:0,ca:23,avp:18,na:0,lys:0,k:0,met:0,d3:0,tsaa:0,thr:0,cl:0,la:0},
+ {id:"salt",n:"Salt",cp:0,me:0,cf:0,ca:0,avp:0,na:39.3,lys:0,k:0,met:0,d3:0,tsaa:0,thr:0,cl:60.7,la:0},
+ {id:"lysHcl",n:"L-Lysine HCl",cp:0,me:0,cf:0,ca:0,avp:0,na:0,lys:78,k:0,met:0,d3:0,tsaa:0,thr:0,cl:19.4,la:0},
+ {id:"dlmet",n:"DL-Methionine",cp:0,me:0,cf:0,ca:0,avp:0,na:0,lys:0,k:0,met:99,d3:0,tsaa:99,thr:0,cl:0,la:0},
+ {id:"binder",n:"Toxin binder",cp:0,me:0,cf:0,ca:0,avp:0,na:0,lys:0,k:0,met:0,d3:0,tsaa:0,thr:0,cl:0,la:0},
+ {id:"enz",n:"Enzyme",cp:0,me:0,cf:0,ca:0,avp:0,na:0,lys:0,k:0,met:0,d3:0,tsaa:0,thr:0,cl:0,la:0},
+ {id:"calcite",n:"Calcite (powder)",cp:0,me:0,cf:0,ca:38,avp:0,na:0,lys:0,k:0,met:0,d3:0,tsaa:0,thr:0,cl:0,la:0},
+ {id:"soda",n:"Soda salt (NaHCO₃)",cp:0,me:0,cf:0,ca:0,avp:0,na:27,lys:0,k:0,met:0,d3:0,tsaa:0,thr:0,cl:0,la:0},
+ {id:"choline",n:"Choline chloride",cp:0,me:0,cf:0,ca:0,avp:0,na:0,lys:0,k:0,met:0,d3:0,tsaa:0,thr:0,cl:15,la:0},
+ {id:"vitese",n:"Vitamin E + Selenium",cp:0,me:0,cf:0,ca:0,avp:0,na:0,lys:0,k:0,met:0,d3:0,tsaa:0,thr:0,cl:0,la:0},
+ {id:"vitc",n:"Vitamin C (coated)",cp:0,me:0,cf:0,ca:0,avp:0,na:0,lys:0,k:0,met:0,d3:0,tsaa:0,thr:0,cl:0,la:0},
+ {id:"tiam",n:"Tiamulin 10% (vet only)",cp:0,me:0,cf:0,ca:0,avp:0,na:0,lys:0,k:0,met:0,d3:0,tsaa:0,thr:0,cl:0,la:0},
+ {id:"ctc",n:"CTC 15% (vet only)",cp:0,me:0,cf:0,ca:0,avp:0,na:0,lys:0,k:0,met:0,d3:0,tsaa:0,thr:0,cl:0,la:0},
+ {id:"sulpha",n:"Sulpha (vet only)",cp:0,me:0,cf:0,ca:0,avp:0,na:0,lys:0,k:0,met:0,d3:0,tsaa:0,thr:0,cl:0,la:0},
+ {id:"enra",n:"Enramycin 8%",cp:0,me:0,cf:0,ca:0,avp:0,na:0,lys:0,k:0,met:0,d3:0,tsaa:0,thr:0,cl:0,la:0},
+ {id:"cocci",n:"Coccidiostat",cp:0,me:0,cf:0,ca:0,avp:0,na:0,lys:0,k:0,met:0,d3:0,tsaa:0,thr:0,cl:0,la:0},
+ {id:"premix",n:"Vitamin–mineral premix",cp:0,me:0,cf:0,ca:0,avp:0,na:0,lys:0,k:0,met:0,d3:0,tsaa:0,thr:0,cl:0,la:0},
+ {id:"tm",n:"Trace mineral premix",cp:0,me:0,cf:0,ca:0,avp:0,na:0,lys:0,k:0,met:0,d3:0,tsaa:0,thr:0,cl:0,la:0},
+ {id:"vitd3",n:"Vitamin D3",cp:0,me:0,cf:0,ca:0,avp:0,na:0,lys:0,k:0,met:0,d3:0,tsaa:0,thr:0,cl:0,la:0},
+ {id:"phytase",n:"Phytase",cp:0,me:0,cf:0,ca:0,avp:0,na:0,lys:0,k:0,met:0,d3:0,tsaa:0,thr:0,cl:0,la:0},
+ {id:"betaine",n:"Betaine",cp:0,me:0,cf:0,ca:0,avp:0,na:0,lys:0,k:0,met:0,d3:0,tsaa:0,thr:0,cl:0,la:0},
+ {id:"emul",n:"Emulsifier",cp:0,me:0,cf:0,ca:0,avp:0,na:0,lys:0,k:0,met:0,d3:0,tsaa:0,thr:0,cl:0,la:0},
+ {id:"addit",n:"Other additive",cp:0,me:0,cf:0,ca:0,avp:0,na:0,lys:0,k:0,met:0,d3:0,tsaa:0,thr:0,cl:0,la:0},
+ {id:"liver",n:"Liver tonic",cp:0,me:0,cf:0,ca:0,avp:0,na:0,lys:0,k:0,met:0,d3:0,tsaa:0,thr:0,cl:0,la:0},
+ {id:"jowar",n:"Jowar",cp:8.8,me:3100,cf:4.0,ca:0.03,avp:0.1,na:0.02,lys:0.21,k:0.35,met:0.15,d3:0,tsaa:0.32,thr:0.3,cl:0.09,la:1.1,lib:true},
+ {id:"wheat",n:"Wheat",cp:12,me:3000,cf:3.5,ca:0.1,avp:0.2,na:0.02,lys:0.31,k:0.4,met:0.15,d3:0,tsaa:0.46,thr:0.35,cl:0.07,la:0.6,lib:true},
+ {id:"bajra",n:"Bajra",cp:9.5,me:3000,cf:4.0,ca:0.1,avp:0.2,na:0.02,lys:0.26,k:0.45,met:0.2,d3:0,tsaa:0.3,thr:0.35,cl:0.05,la:2.0,lib:true},
+ {id:"ricepol",n:"Rice polish",cp:13,me:2700,cf:8.0,ca:0.09,avp:0.22,na:0.03,lys:0.6,k:1.1,met:0.26,d3:0,tsaa:0.5,thr:0.5,cl:0.07,la:5.6,lib:true},
+ {id:"gne",n:"GN extraction (GNE)",cp:42,me:2500,cf:10.0,ca:0.2,avp:0.19,na:0.03,lys:1.4,k:1.2,met:0.46,d3:0,tsaa:1.0,thr:1.09,cl:0.03,la:0.3,lib:true},
+ {id:"mbm",n:"Meat & bone meal",cp:43,me:2500,cf:1.0,ca:12.0,avp:4.5,na:0.6,lys:1.9,k:1.4,met:0.45,d3:0,tsaa:0.85,thr:1.15,cl:0.7,la:0.3,lib:true},
+ {id:"hipro",n:"Soya Hi Pro",cp:49,me:2525,cf:5.5,ca:0.25,avp:0.25,na:0.02,lys:2.95,k:2.2,met:0.63,d3:0,tsaa:1.3,thr:1.85,cl:0.05,la:0.4,lib:true},
+ {id:"ffs",n:"Full fat soya",cp:37,me:3500,cf:5.5,ca:0.29,avp:0.24,na:0.02,lys:2.25,k:1.6,met:0.5,d3:0,tsaa:1.05,thr:1.4,cl:0.03,la:9.5,lib:true},
+ {id:"csm",n:"Cotton seed meal",cp:40,me:2300,cf:18,ca:0.2,avp:0.3,na:0.05,lys:1.57,k:1.4,met:0.6,d3:0,tsaa:1.25,thr:1.3,cl:0.04,la:0.4,lib:true},
+ {id:"mustard",n:"Mustard extracted",cp:37,me:2000,cf:10,ca:0.72,avp:0.25,na:0.05,lys:1.75,k:1.2,met:0.68,d3:0,tsaa:1.6,thr:1.48,cl:0.05,la:0.3,lib:true},
+ {id:"fish",n:"Fish meal",cp:50,me:2500,cf:1.0,ca:0.5,avp:1.8,na:0.6,lys:3.1,k:0.7,met:1.25,d3:0,tsaa:1.7,thr:1.85,cl:0.5,la:0.1,lib:true},
+ {id:"mgm",n:"Maize gluten meal (MGM)",cp:60,me:3700,cf:2.0,ca:0.1,avp:0.2,na:0.05,lys:1.0,k:0.2,met:1.5,d3:0,tsaa:2.5,thr:2.0,cl:0.05,la:1.9,lib:true},
+ {id:"rgm",n:"Rice gluten meal (RGM)",cp:45,me:3000,cf:5.0,ca:0.2,avp:0.15,na:0.05,lys:1.2,k:0.3,met:1.12,d3:0,tsaa:2.0,thr:1.6,cl:0.05,la:2.0,lib:true},
+ {id:"guar",n:"Guar korma",cp:48,me:2500,cf:6.0,ca:0.1,avp:0.2,na:0.05,lys:1.96,k:1.1,met:0.51,d3:0,tsaa:1.07,thr:1.35,cl:0.05,la:1.0,lib:true},
+ {id:"ddgs",n:"DDGS",cp:45,me:2500,cf:4.0,ca:0.1,avp:0.05,na:0.15,lys:1.3,k:0.9,met:0.86,d3:0,tsaa:1.6,thr:1.6,cl:0.15,la:1.6,lib:true}];
+const STAGES={
+ grower:{n:"Grower 6–10 wk",t:{cp:[17,18],me:[2650,2800],cf:[3,5],ca:[0.95,1.1],avp:[0.40,0.46],na:[0.15,0.19],lys:[0.82,0.90],met:[0.36,0.44],k:[0.4,0.9],d3:[2500,5000],tsaa:[0.67,0.85],thr:[0.65,0.85],cl:[0.15,0.28],deb:[170,250],la:[1.0,2.5],sand:[0,0.8]}},
+ dev:{n:"Developer 10–16 wk",t:{cp:[15,16.2],me:[2650,2800],cf:[3,6],ca:[0.9,1.15],avp:[0.38,0.44],na:[0.15,0.19],lys:[0.68,0.76],met:[0.31,0.38],k:[0.4,0.9],d3:[2500,5000],tsaa:[0.58,0.75],thr:[0.55,0.75],cl:[0.15,0.28],deb:[170,250],la:[1.0,2.5],sand:[0,0.8]}},
+ chick:{n:"Chick 0–6 wk",t:{cp:[20,21],me:[2750,2900],cf:[0,5],ca:[0.95,1.1],avp:[0.44,0.48],na:[0.16,0.20],lys:[1.05,1.15],met:[0.45,0.52],k:[0.4,0.9],d3:[2500,5000],tsaa:[0.80,0.95],thr:[0.75,0.95],cl:[0.15,0.30],deb:[170,250],la:[1.0,2.5],sand:[0,0.8]}},
+ plm:{n:"Pre-lay (PLM)",t:{cp:[17,17.8],me:[2600,2800],cf:[0,6],ca:[2.8,3.2],avp:[0.40,0.46],na:[0.16,0.20],lys:[0.80,0.90],met:[0.37,0.45],k:[0.4,0.9],d3:[3000,6000],tsaa:[0.68,0.83],thr:[0.60,0.80],cl:[0.15,0.25],deb:[170,250],la:[1.2,2.5],sand:[0,0.8]}},
+ l1:{n:"Layer Phase 1 (18–40 wk)",t:{cp:[16,17],me:[2600,2800],cf:[0,6],ca:[3.9,4.3],avp:[0.42,0.48],na:[0.16,0.20],lys:[0.78,0.86],met:[0.38,0.46],k:[0.4,0.9],d3:[3000,6000],tsaa:[0.67,0.83],thr:[0.57,0.77],cl:[0.15,0.25],deb:[170,250],la:[1.4,2.5],sand:[0,0.8]}},
+ l2:{n:"Layer Phase 2 (40 wk+)",t:{cp:[15.3,16.3],me:[2600,2800],cf:[0,6],ca:[4.1,4.5],avp:[0.36,0.42],na:[0.16,0.20],lys:[0.72,0.80],met:[0.36,0.44],k:[0.4,0.9],d3:[3000,6000],tsaa:[0.63,0.79],thr:[0.53,0.73],cl:[0.15,0.25],deb:[170,250],la:[1.3,2.5],sand:[0,0.8]}}};
+const PRESETS={
+ cm:{n:"Chick Mash (CM) 0–6 wk",stage:"chick",kg:{maize:523,rice:100,soya:349.7,sfdoc:25,oil:10,calcite:13,dcp:17.4,salt:4.3,lysHcl:0.29,dlmet:1.83,premix:0.525,tm:0.525,emul:0.525,choline:0.5,binder:1.05,liver:0.5,enz:0.42,cocci:0.5,enra:0.13,vitese:0.2,vitc:0.15}},
+ d1:{n:"DORB – Layer Phase I",stage:"l1",kg:{maize:459.6,rice:100,soya:241.6,sfdoc:70,dorb:40,oil:12,calcite:33.4,grit:66.7,dcp:15.7,salt:3.3,soda:1.5,dlmet:1.13,premix:0.525,tm:0.525,emul:0.525,choline:0.5,binder:1.05,liver:0.5,enz:0.42}},
+ d2:{n:"DORB – Layer Phase II",stage:"l2",kg:{maize:464.3,rice:100,soya:215,sfdoc:80,dorb:50,oil:12,calcite:34.8,grit:69.5,dcp:13.5,salt:3.0,soda:2,dlmet:0.87,premix:0.525,tm:0.525,emul:0.525,choline:0.5,binder:1.05,liver:0.5,enz:0.42}},
+ dplm:{n:"DORB – Pre-lay (PLM)",stage:"plm",kg:{maize:503.4,rice:100,soya:245.2,sfdoc:60,dorb:45,calcite:34.7,grit:34.7,dcp:16.1,salt:3.3,soda:1.5,dlmet:1.08,premix:0.525,tm:0.525,emul:0.525,choline:0.5,binder:1.05,liver:0.5,enz:0.42}},
+ dgm:{n:"DORB – Grower (GM)",stage:"grower",kg:{maize:490.3,rice:150,soya:221.3,sfdoc:50,dorb:100,calcite:13.8,dcp:14.7,salt:4.0,dlmet:0.85,premix:0.525,tm:0.525,emul:0.525,choline:0.5,binder:1.05,liver:0.5,enz:0.42,enra:0.13}},
+ nsr1:{n:"NSR-based Layer Phase I",stage:"l1",kg:{maize:508,rice:100,soya:245.1,sfdoc:70,calcite:33.3,grit:66.6,dcp:16,salt:3.3,soda:1.5,dlmet:1.16,premix:0.525,tm:0.525,emul:0.525,choline:0.5,binder:1.05,liver:0.5,enz:0.42}},
+ nsr2:{n:"NSR-based Layer Phase II",stage:"l2",kg:{maize:521.1,rice:100,soya:220.1,sfdoc:80,calcite:34.7,grit:69.4,dcp:13.8,salt:3.0,soda:2,dlmet:0.91,premix:0.525,tm:0.525,emul:0.525,choline:0.5,binder:1.05,liver:0.5,enz:0.42}},
+ nsrplm:{n:"NSR-based Pre-lay (PLM)",stage:"plm",kg:{maize:541.8,rice:100,soya:252.1,sfdoc:60,calcite:34.6,grit:34.6,dcp:16.4,salt:4.3,dlmet:1.12,premix:0.525,tm:0.525,emul:0.525,choline:0.5,binder:1.05,liver:0.5,enz:0.42}},
+ nsrgm:{n:"NSR-based Grower (GM)",stage:"grower",kg:{maize:560.8,rice:150,soya:220.8,sfdoc:80,calcite:13.3,dcp:15.2,salt:4.0,dlmet:0.88,premix:0.525,tm:0.525,emul:0.525,choline:0.5,binder:1.05,liver:0.5,enz:0.42,enra:0.13}},
+ l1nolc:{n:"Layer Phase 1 – no LC40",stage:"l1",kg:{maize:533,rice:100,soya:213.3,sfdoc:80,grit:96.6,dcp:17,salt:4.3,dlmet:1.25,premix:0.525,tm:0.525,emul:0.525,binder:1.05,liver:0.5,enz:0.42}},
+ l1s130:{n:"Layer Phase 1 – soya 130",stage:"l1",kg:{maize:493.8,rice:100,soya:130,sfdoc:40,lc40:178.4,grit:86.2,dcp:12,salt:3.0,lysHcl:0.87,dlmet:1.15,premix:0.525,tm:0.525,emul:0.525,binder:1.05,liver:0.5,enz:0.42}},
+ l1sf:{n:"Layer Phase 1 – SF DOC + premix",stage:"l1",kg:{maize:469.9,rice:100,soya:90,sfdoc:40,lc40:250,grit:82,dcp:10,salt:2.5,lysHcl:1.27,dlmet:1.08,premix:0.525,tm:0.525,emul:0.525,binder:1.05,liver:0.5,enz:0.42}},
+ l1:{n:"Layer Phase 1 – soya 90",stage:"l1",kg:{maize:380,rice:185.6,soya:90,lc40:296,grit:81.7,dcp:10.6,salt:2.5,lysHcl:1.03,dlmet:1.1,binder:1.05,enz:0.42}},
+ l2:{n:"Layer Phase 2 – soya 90",stage:"l2",kg:{maize:400,rice:191,soya:90,lc40:263,grit:91.55,dcp:8.4,salt:2.8,lysHcl:0.78,dlmet:1.0,binder:1.05,enz:0.42}},
+ grower:{n:"Grower 6–10 wk",stage:"grower",kg:{maize:335,rice:336,soya:148,lc40:210,grit:4.2,dcp:11.55,salt:2.6,lysHcl:0.63,dlmet:0.74,binder:1.05,enz:0.42}},
+ dev:{n:"Developer 10–16 wk",stage:"dev",kg:{maize:351,rice:351,soya:70.5,lc40:262.5,grit:1.05,dcp:9.45,salt:2.2,lysHcl:0.53,dlmet:0.37,binder:1.05,enz:0.42}}};
+const TIPS={
+sand:{low:"",high:"Reduce the concentrate (or other sandy materials) and replace protein with soya; ask the supplier for acid-insoluble ash below 2%."},
+tsaa:{low:"Add DL-methionine: about 1 kg per 0.1% in 1000 kg.",high:"Reduce DL-methionine."},
+thr:{low:"Add soya, or L-threonine if available (about 1 kg per 0.1% in 1000 kg).",high:"Reduce soya or other protein a little."},
+cl:{low:"Add a little salt.",high:"Replace part of the salt with soda salt (1 kg salt → 1.5 kg soda salt); check L-lysine HCl and choline chloride."},
+deb:{low:"Replace part of the salt with soda salt to add sodium without chloride.",high:"Reduce soda salt or high-potassium soya."},
+la:{low:"Use more maize instead of broken rice, or add 10–20 kg soya oil.",high:"Reduce oil."},
+ cp:{low:"Add soya or LC40 and take the same kg out of maize or rice.",high:"Move kg from soya or LC40 into maize or rice. Excess protein wets droppings."},
+ me:{low:"Use more maize or rice, or swap 10–20 kg rice for soya oil.",high:"Add a little DORB or more LC40 to dilute energy."},
+ cf:{low:"For pullets, a little DORB adds useful fibre.",high:"Cut sunflower DOC, LC40 or DORB. High fibre lowers energy and intake."},
+ ca:{low:"Add shell grit (38% Ca).",high:"Reduce grit. LC40 and DCP also carry calcium."},
+ avp:{low:"Add DCP (18% P).",high:"Reduce DCP."},
+ na:{low:"Add salt (about 0.4 kg salt per 0.01% Na in 1000 kg).",high:"Reduce salt. LC40 already contains salt."},
+ lys:{low:"Add L-Lysine HCl, about 1.3 kg per 0.1% in 1000 kg.",high:"Reduce L-Lysine HCl."},
+ met:{low:"Add DL-Methionine, about 1 kg per 0.1% in 1000 kg.",high:"Reduce DL-Methionine."},
+ k:{low:"Very unusual in maize-soya feed. Check ingredient values.",high:"Cut soya, SF DOC or DORB. Above 1.0% K birds drink more and droppings get wet."},
+ d3:{low:"Enter your premix D3 value (from the bag label) in section 2, or raise premix kg.",high:"Reduce premix kg, or check you are not adding D3 from two products (premix + LC40 or a separate D3)."}};
+
+const LIMITS={
+maize:[70,70,65,"Mouldy maize (aflatoxin) damages liver; test each lot."],
+rice:[20,30,25,"Lower energy, slower growth, pale yolk, smaller eggs; pasty if fine."],
+wheat:[20,30,25,"Sticky gut contents, wet sticky droppings; use xylanase."],
+jowar:[30,40,40,"Tannins reduce protein digestion and growth; pale yolk."],
+bajra:[30,40,40,"Goes rancid when ground; ergot risk."],
+ricepol:[5,10,8,"Rancid fat destroys vitamins, loose droppings, liver stress."],
+dorb:[0,12,8,"Low energy, high fibre, phytate binds minerals; rancid DORB gives loose droppings."],
+oil:[3,4,4,"Rancid oil destroys vitamins A and E; sticky lumpy mash."],
+soya:[35,30,28,"High potassium causes wet droppings; under-cooked soya enlarges pancreas."],
+hipro:[35,30,28,"High potassium causes wet droppings."],
+ffs:[15,15,15,"Under-heated: enlarged pancreas, poor growth; fat goes rancid."],
+sfdoc:[3,8,8,"Very high fibre dilutes energy, bulky wet droppings, lower growth."],
+gn:[5,8,8,"Aflatoxin: liver damage, immune suppression, mortality, egg drop."],
+gne:[5,8,8,"Aflatoxin risk: liver damage and mortality."],
+lc40:[20,30,30,"High sand and ash, excess Ca for young birds, double vitamins and minerals with premix."],
+csm:[0,5,3,"Gossypol: olive or brown yolk, pink egg white, poor growth."],
+mustard:[3,5,5,"Goitre, liver haemorrhage, egg drop, fishy taint in eggs."],
+guar:[3,5,5,"Sticky wet droppings, lower intake and growth."],
+fish:[5,5,4,"Salt gives wet droppings; gizzard erosion; fishy eggs; Salmonella."],
+mbm:[4,5,5,"Ca and P imbalance; Salmonella risk."],
+mgm:[5,5,5,"Very low lysine: amino acid imbalance."],
+rgm:[5,5,5,"Low lysine: amino acid imbalance."],
+ddgs:[5,10,10,"Mycotoxins concentrated; variable quality."],
+calcite:[1.5,2,4,"Young birds: kidney damage (gout), poor growth. Layers: lower intake."],
+grit:[0,1,8,"Young birds: kidney damage (gout). Layers above 4.5% Ca: lower intake, poor shells."],
+dcp:[2,1.8,1.8,"Excess P weakens eggshells; high-fluorine DCP causes leg and shell problems."],
+salt:[0.45,0.45,0.45,"High water intake, very wet droppings, weak shells; salt poisoning if severe."],
+soda:[0.2,0.2,0.3,"Alkalosis, wet droppings, kidney stress."],
+lysHcl:[0.35,0.3,0.3,"Amino acid imbalance; money wasted."],
+dlmet:[0.3,0.25,0.25,"Excess methionine is toxic: lower intake and growth."],
+choline:[0.1,0.1,0.1,"Wasted; destroys vitamins if mixed straight into premix."],
+binder:[0.2,0.2,0.2,"Binds vitamins and trace minerals above label dose."],
+premix:[0.25,0.25,0.25,"Vitamin A, D3, Cu or Se toxicity: bone and kidney damage."],
+vitese:[0.03,0.03,0.03,"Selenium toxicity: poor growth, feather loss."],
+vitc:[0.03,0.03,0.03,"Money wasted above label dose."],
+enra:[0.015,0.015,0,"Antibiotic residues in eggs; not for layers. Resistance with overuse."],
+cocci:[0.05,0.05,0,"Overdose causes paralysis and death; not for layer feed; never with tiamulin."],
+tiam:[0.2,0.2,0,"Vet use only. Deadly with monensin, salinomycin or narasin."],
+ctc:[0.35,0.35,0,"Vet use only. Egg residues; withdrawal needed."],
+sulpha:[0.1,0.1,0,"Vet use only. Kidney damage, egg residues, lower production."],
+enz:[0.05,0.05,0.05,"Wasted above label dose."],
+tm:[0.1,0.1,0.1,"Excess Cu, Zn or Se is toxic: poor growth, liver and kidney damage."],
+vitd3:[0.05,0.05,0.05,"Too much D3: calcium deposits in kidneys, kidney damage."],
+betaine:[0.2,0.2,0.2,"Wasted above 2 kg per ton."],
+emul:[0.1,0.1,0.1,"Wasted above label dose (500–1000 g per ton)."],
+phytase:[0.02,0.02,0.02,"Wasted above label dose. If the P credit is counted twice, birds go short of phosphorus."],
+liver:[0.05,0.05,0.05,"Wasted above label dose."]};
+const LGROUP={chick:0,grower:1,dev:1,plm:2,l1:2,l2:2};
+var PREMIX_BOOST={chick:1.25,grower:1.25,dev:1.25};
+var CONC_MAX={chick:10,grower:20,dev:20,plm:25,l1:25,l2:40};
+var CONC_MIN={l2:40};
+const EFFECTS={
+sand:{low:"",high:"Gizzard and gut wear, wet droppings, poorer digestion and egg production."},
+tsaa:{low:"Poor feathering, small eggs, lower production, fatty liver.",high:"Excess methionine: lower intake; money wasted."},
+thr:{low:"Lower egg production and growth; poor gut lining and immunity.",high:"Money wasted; no benefit."},
+cl:{low:"Poor appetite and growth (rare).",high:"More water intake and wet droppings; thinner shells in layers."},
+deb:{low:"Poorer growth and shell quality, worse in hot weather.",high:"Wet droppings and high water intake."},
+la:{low:"Small eggs and lower egg weight; poorer early growth.",high:"Soft fat; little benefit."},
+cp:{low:"Poor growth, low egg weight and production, poor feathering, feather pecking.",high:"Wet droppings, ammonia in shed, higher necrotic enteritis risk, wasted money."},
+me:{low:"Birds eat more feed; slower growth, lower body weight and smaller eggs.",high:"Birds eat less and miss other nutrients; fat pullets, fatty liver in layers."},
+cf:{low:"Poor crop and gut development in pullets; more feather pecking.",high:"Dilutes energy; bulky wet droppings, lower growth and egg output."},
+ca:{low:"Thin or soft shells, more cracked eggs, cage layer fatigue.",high:"Lower feed intake and poorer shells; upsets phosphorus balance."},
+avp:{low:"Rickets, weak legs and bones, cage layer fatigue.",high:"Poorer eggshells, kidney stress, wasted DCP."},
+na:{low:"Low feed intake, feather pecking and cannibalism, egg drop.",high:"High water intake, wet droppings and litter, weaker shells."},
+lys:{low:"Slow growth, poor feathering, small eggs.",high:"Amino acid imbalance; money wasted."},
+met:{low:"Poor feathering, small eggs, lower production, fatty liver.",high:"Toxic in excess: lower feed intake and growth."},
+k:{low:"Muscle weakness (rare in maize-soya feed).",high:"High water intake and wet droppings."},
+d3:{low:"Thin shells, more cracked eggs, cage layer fatigue.",high:"Calcium deposits in kidneys and blood vessels, kidney damage; toxic at very high levels."}};
+const EFFECTS_YOUNG={
+sand:{low:"",high:"Gizzard and gut damage, poor growth, wet litter."},
+tsaa:{low:"Poor feathering, slow growth, feather pecking.",high:"Excess methionine: lower intake and growth."},
+thr:{low:"Slow growth, poor gut lining and immunity.",high:"Money wasted; no benefit."},
+cl:{low:"Poor appetite and growth (rare).",high:"More water intake, wet litter."},
+deb:{low:"Slower growth, more heat stress.",high:"Wet droppings and high water intake."},
+la:{low:"Poorer growth and feathering.",high:"Little benefit; feed costs more."},
+cp:{low:"Slow growth, low body weight, poor feathering and uniformity.",high:"Wet droppings, ammonia in shed, higher necrotic enteritis risk, wasted money."},
+me:{low:"Chicks eat more but still grow slower; low body weight.",high:"Lower feed intake; over-fat pullets if it continues."},
+cf:{low:"Poor crop and gizzard development; more feather pecking later.",high:"Dilutes energy; bulky wet droppings and slower growth."},
+ca:{low:"Rickets: soft bones and beaks, leg weakness, poor growth.",high:"Kidney damage (visceral gout), poor growth, less phosphorus absorbed."},
+avp:{low:"Rickets, weak legs and bones, poor growth.",high:"Ties up calcium; kidney stress and wasted DCP."},
+na:{low:"Low feed intake, slow growth, feather pecking.",high:"High water intake, wet droppings and litter."},
+lys:{low:"Slow growth, poor feathering, poor uniformity.",high:"Amino acid imbalance; money wasted."},
+met:{low:"Poor feathering, slow growth, feather pecking.",high:"Toxic in excess: lower feed intake and growth."},
+d3:{low:"Rickets: soft bones and beaks, leg weakness, lameness.",high:"Calcium deposits in kidneys and blood vessels, kidney damage."}};
+const store={get(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+let ING=(()=>{let saved=store.get("ff_ing")||[];if(store.get("ff_ver")!==3){saved=saved.filter(s=>s.id==="lc40");store.set("ff_ver",3)}return DEFAULT_ING.map(d=>({...d,...(saved.find(s=>s.id===d.id)||{}),n:d.n,d3:((saved.find(s=>s.id===d.id)||{}).d3??d.d3)}))})();
+
+var MEDS=(()=>{try{return JSON.parse(localStorage.getItem("ff_meds"))||[]}catch(e){return []}})();
+function medToIng(m){return {id:m.id,n:m.name,med:true,note:m.note||"",cp:0,me:0,cf:0,ca:0,avp:0,na:0,lys:0,k:0,met:0,d3:0,tsaa:0,thr:0,cl:0,la:0}}
+function medLimits(m){const mx=m.dose*2/1e4;LIMITS[m.id]=[m.st[0]?mx:0,m.st[1]?mx:0,m.st[2]?mx:0,(m.note?m.note+". ":"")+"Above twice the dose: overdose risk and residues. Follow the label or vet advice."]}
+MEDS.forEach(m=>{if(!ING.find(i=>i.id===m.id))ING.push(medToIng(m));medLimits(m)});
+const saveMeds=()=>{try{localStorage.setItem("ff_meds",JSON.stringify(MEDS))}catch(e){}};
+let KG=(store.get("ff_kver")===10&&store.get("ff_kg"))||{...PRESETS.cm.kg};
+let PRICE=store.get("ff_price")||{};
+let STAGE=(store.get("ff_kver")===10&&store.get("ff_stage"))||"chick";store.set("ff_kver",10);
+const $=s=>document.querySelector(s);
+
+const fmt=(v,d)=>Number(v).toLocaleString("en-IN",{minimumFractionDigits:d,maximumFractionDigits:d});
+
+function buildSelects(){
+  $("#stage").innerHTML=Object.entries(STAGES).map(([k,s])=>`<option value="${k}">${s.n}</option>`).join("");
+  $("#stage").value=STAGE;
+  $("#preset").innerHTML=Object.entries(PRESETS).map(([k,p])=>`<option value="${k}">${p.n}</option>`).join("");
+}
+let SHOWALL=false;
+var LOCK=(()=>{try{return JSON.parse(localStorage.getItem("ff_lock"))||{}}catch(e){return {}}})();
+var USE=(()=>{try{return JSON.parse(localStorage.getItem("ff_use"))||{}}catch(e){return {}}})();
+const isUsed=i=>USE[i.id]!==undefined?USE[i.id]:((KG[i.id]||0)>0);
+var HIDE=(()=>{try{return localStorage.getItem("ff_hide")==="1"}catch(e){return false}})();
+const vis=i=>HIDE?isUsed(i):(!i.lib||SHOWALL||(KG[i.id]||0)>0||USE[i.id]===true);
+function buildIng(){
+  $("#ingTable tbody").innerHTML=ING.filter(vis).map(i=>`<tr class="${isUsed(i)?"":"unused"}">
+    <td class="use"><input type="checkbox" data-use="${i.id}" aria-label="Use ${i.n}"${isUsed(i)?" checked":""}></td>
+    <td class="name">${i.n}${i.med?` <button type="button" class="ghost sm medx" data-med="${i.id}" aria-label="Remove ${i.n}">Remove</button>`:""}${i.note?`<div class="hint">${esc(i.note)}</div>`:""}${prodSelect(i)}<div class="warn" id="w_${i.id}"></div></td>
+    <td class="kgcell"><input class="num kg" type="number" step="0.01" min="0" id="kg_${i.id}" data-id="${i.id}" value="${KG[i.id]??""}" placeholder="0"></td>
+    <td class="pct" id="pc_${i.id}">–</td>
+    <td class="pct max" id="mx_${i.id}">–</td>
+    <td><input class="num kg" style="width:110px" type="number" step="0.5" min="0" id="pr_${i.id}" data-pid="${i.id}" value="${PRICE[i.id]??""}" placeholder="₹"></td><td class="keepcell">${(AUTO_IDS.includes(i.id)||i.id===FILLER)?"":`<input type="checkbox" data-lock="${i.id}" aria-label="Keep ${i.n} kg in least-cost" title="Least-cost keeps this kg"${LOCK[i.id]?" checked":""}>`}</td><td class="why" id="why_${i.id}"></td></tr>`).join("");
+  $("#ingTable tbody").querySelectorAll("input[data-id]").forEach(el=>el.addEventListener("input",e=>{LC_LOCK=false;const id=el.dataset.id,v=Math.max(0,parseFloat(el.value)||0);if((parseFloat(el.value)||0)<0)el.value=0;KG[id]=v;if(v>0&&USE[id]!==true){USE[id]=true;try{localStorage.setItem("ff_use",JSON.stringify(USE))}catch(x){}const cb=el.closest("tr").querySelector("input[data-use]");if(cb)cb.checked=true;el.closest("tr").classList.remove("unused")}calc()}));
+  $("#ingTable tbody").querySelectorAll("button.medx").forEach(btn=>btn.addEventListener("click",()=>{
+    if(btn.dataset.armed!=="1"){btn.dataset.armed="1";btn.textContent="Tap again";setTimeout(()=>{btn.dataset.armed="";btn.textContent="Remove"},3000);return}
+    const id=btn.dataset.med;MEDS=MEDS.filter(m=>m.id!==id);saveMeds();ING=ING.filter(i=>i.id!==id);delete KG[id];delete LIMITS[id];buildIng();buildVals();calc()}));
+  $("#ingTable tbody").querySelectorAll("input[data-lock]").forEach(el=>el.addEventListener("change",()=>{const id=el.dataset.lock;if(el.checked){LOCK[id]=true;USE[id]=true}else delete LOCK[id];try{localStorage.setItem("ff_lock",JSON.stringify(LOCK));localStorage.setItem("ff_use",JSON.stringify(USE))}catch(e){}calc()}));
+  $("#ingTable tbody").querySelectorAll("input[data-use]").forEach(el=>el.addEventListener("change",()=>{const id=el.dataset.use;USE[id]=el.checked;if(!el.checked){delete KG[id];delete LOCK[id];try{localStorage.setItem("ff_lock",JSON.stringify(LOCK))}catch(x){}}if(el.checked&&!(KG[id]>0)&&!AUTO_IDS.includes(id))setTimeout(()=>{const k=document.getElementById("kg_"+id);if(k){k.focus();k.classList.add("askkg");setTimeout(()=>k.classList.remove("askkg"),2500)}},50);if(id==="lc40"&&!el.checked){["dcp","salt","lysHcl","dlmet","premix","tm","binder"].forEach(k=>{USE[k]=true});LC_LOCK=false}try{localStorage.setItem("ff_use",JSON.stringify(USE))}catch(e){}buildIng();calc()}));
+  $("#ingTable tbody").querySelectorAll("select.prod").forEach(el=>el.addEventListener("change",()=>{const cat=el.dataset.cat;
+    if(el.value==="__new"){el.value=SEL[cat]||"";showTab("products");$("#pfCat").value=cat;showFormFields();$("#prodLib").scrollIntoView({behavior:"smooth",block:"center"});$("#pfName").focus();return}
+    if(!el.value){delete SEL[cat];saveProds();return}
+    applyProduct(cat,el.value,true);buildIng();buildVals();calc()}));
+  $("#ingTable tbody").querySelectorAll("input[data-pid]").forEach(el=>el.addEventListener("input",e=>{const id=el.dataset.pid,v=Math.max(0,parseFloat(el.value)||0);PRICE[id]=v;PRICE_DATE=new Date().toLocaleDateString("en-IN");try{localStorage.setItem("ff_price_date",PRICE_DATE)}catch(x){}if(v>0&&USE[id]!==true){USE[id]=true;try{localStorage.setItem("ff_use",JSON.stringify(USE))}catch(x){}const tr=el.closest("tr"),cb=tr.querySelector("input[data-use]");if(cb)cb.checked=true;tr.classList.remove("unused")}calc()}));
+}
+function buildVals(){
+  $("#valTable thead").innerHTML=`<tr><th>Ingredient</th>${NUTS.filter(n=>!n.calc).map(n=>`<th>${n.k==="me"?"ME":n.k.toUpperCase()}</th>`).join("")}</tr>`;
+  $("#valTable tbody").innerHTML=ING.filter(vis).map(i=>`<tr><td class="name">${i.n}</td>${NUTS.filter(n=>!n.calc).map(n=>`<td><input class="num" type="number" step="0.01" id="v_${i.id}_${n.k}" data-i="${i.id}" data-n="${n.k}" value="${i[n.k]??0}"></td>`).join("")}</tr>`).join("");
+  $("#valTable tbody").querySelectorAll("input").forEach(el=>el.addEventListener("input",()=>{const ing=ING.find(x=>x.id===el.dataset.i);ing[el.dataset.n]=parseFloat(el.value)||0;calc()}));
+}
+
+var AUTO_ON=(()=>{try{return localStorage.getItem("ff_auto")!=="0"}catch(e){return true}})();
+var AUTO_IDS=["premix","tm","liver","binder","vitese","vitc","betaine","emul"];
+
+function concInfo(){
+  if(!(KG.lc40>0))return null;
+  const pr=(PRODUCTS.lc40||[]).find(x=>x.name===SEL.lc40);if(!pr||!pr.has)return null;
+  const set=parseFloat(($("#scaleTo")||{}).value)||1050,need=(pr.dose||0)*set/1e6;
+  const full=need>0&&KG.lc40>=need*0.9;
+  return {name:pr.name,has:pr.has,full,need,rate:(pr.dose||0)/1000,frac:need?Math.min(1,KG.lc40/need):0,noRate:!need};
+}
+
+function premixFrac(cat,def){const set=parseFloat(($("#scaleTo")||{}).value)||1050;let d=def;try{const pr=(PRODUCTS[cat]||[]).find(x=>x.name===SEL[cat]);if(pr&&pr.dose>0)d=pr.dose}catch(e){}const need=d*set/1e6;return need?(KG[cat]||0)/need:0}
+function coverCard(kind,CI,cat,def,box,effLow,fixLow){
+  const fc=Math.min(1,CI.frac),fp=premixFrac(cat,def),cov=fc+fp,ok=cov>=0.95;
+  const name=`${kind}: concentrate ${Math.round(fc*100)}% + premix ${Math.round(fp*100)}%`;
+  $(box).innerHTML=cardRow(name,cov*100,"% of need",95,null,ok?"ok":"low",effLow,fixLow,0,`Concentrate ${fmt(KG.lc40,0)} kg of ${fmt(CI.need,0)} kg (${Math.round(fc*100)}%); premix tops up the rest`);
+  return {ok,cov};
+}
+
+var MATCH_ON=(()=>{try{return localStorage.getItem("ff_match")!=="0"}catch(e){return true}})();
+var FILLER=(()=>{try{return localStorage.getItem("ff_filler")||"maize"}catch(e){return "maize"}})();
+function matchWeight(){
+  const el0=document.getElementById("kg_"+FILLER);
+  ING.forEach(i=>{if(i.id!==FILLER){const e=document.getElementById("kg_"+i.id);if(e&&e.dataset.match){delete e.dataset.match;if(!e.classList.contains("auto"))e.readOnly=false;e.classList.remove("matchfill")}}});
+  if(!MATCH_ON||USE[FILLER]===false){if(el0&&el0.dataset.match){delete el0.dataset.match;el0.readOnly=false;el0.classList.remove("matchfill")}return}
+  const set=parseFloat(($("#scaleTo")||{}).value)||0;if(!set)return;
+  const others=ING.reduce((a,i)=>a+(i.id===FILLER?0:(KG[i.id]||0)),0);
+  const v=Math.round((set-others)*100)/100;
+  if(v>0)KG[FILLER]=v;else delete KG[FILLER];
+  if(el0){el0.value=v>0?v:"";el0.readOnly=true;el0.dataset.match="1";el0.classList.add("matchfill");el0.title="Adjusted automatically so the batch equals the set weight"}
+  MATCH_SHORT=v<0?-v:0;
+}
+var MATCH_SHORT=0;
+function autoAdd(){
+  if(!AUTO_ON)return;
+  const set=parseFloat(($("#scaleTo")||{}).value)||1050;
+  const young=["chick","grower","dev","plm"].includes(STAGE);
+  const pd=(cat,def)=>{try{const pr=(PRODUCTS&&PRODUCTS[cat]||[]).find(x=>x.name===SEL[cat]);return pr&&pr.dose>0?pr.dose:def}catch(e){return def}};
+  const CI=concInfo(),cv=CI&&CI.full;
+  const rest=has=>{if(!(CI&&has))return 1;const r=1-CI.frac;return r<0.1?0:r};
+  const boost=PREMIX_BOOST[STAGE]||1;
+  const g={premix:pd("premix",500)*boost*rest(CI&&CI.has.vit),tm:pd("tm",500)*boost*rest(CI&&CI.has.tm),liver:500,binder:1000*rest(CI&&CI.has.binder),
+    vitese:young?pd("vitese",200):0,vitc:young?pd("vitc",150):0,betaine:young?1000:0,
+    emul:(KG.oil||0)>0?pd("emul",500):0};
+  for(const id of AUTO_IDS){if(USE[id]===false)g[id]=0;const kg=Math.round(g[id]*set/1e6*1000)/1000;if(kg>0)KG[id]=kg;else delete KG[id];
+    const el=document.getElementById("kg_"+id);if(el){el.value=kg>0?kg:"";el.readOnly=true;el.classList.add("auto");el.title="Added automatically"}}
+  balanceTop(!!CI);
+}
+var BAL_IDS=["dcp","salt","lysHcl","dlmet"];
+var LC_LOCK=false;
+function balanceTop(cv){
+  if(LC_LOCK)cv=false;
+  const mark=(id,on)=>{const el=document.getElementById("kg_"+id);if(el){el.readOnly=on;el.classList.toggle("auto",on);el.title=on?"Topped up automatically: only what the concentrate does not supply":""}};
+  if(!cv){BAL_IDS.forEach(id=>mark(id,false));return}
+  const T=parseFloat(($("#scaleTo")||{}).value)||1050,t=STAGES[STAGE].t;
+  const sup=k=>ING.reduce((a,i)=>a+(BAL_IDS.includes(i.id)?0:(KG[i.id]||0)*(i[k]||0)),0)/100; // kg of nutrient
+  const kgOf=id=>{const i=ING.find(x=>x.id===id);return i};
+  const need=(k,lo)=>Math.max(0,lo*1.02*T/100-sup(k));
+  const dcp=need("avp",t.avp[0])/0.18;
+  const salt=need("na",t.na[0])/0.393;
+  const lys=need("lys",t.lys[0])/0.78;
+  const metRoom=Math.max(0,t.met[1]*0.99*T/100-sup("met"));
+  const met=Math.min(Math.max(need("met",t.met[0]),need("tsaa",t.tsaa[0])),metRoom)/0.99;
+  const v={dcp,salt,lysHcl:lys,dlmet:met};
+  for(const id of BAL_IDS){if(USE[id]===false){delete KG[id];mark(id,false);continue}
+    const kg=Math.round(v[id]*100)/100;if(kg>0)KG[id]=kg;else delete KG[id];
+    const el=document.getElementById("kg_"+id);if(el)el.value=kg>0?kg:"";mark(id,true)}
+}
+function autoOff(){balanceTop(false);AUTO_IDS.forEach(id=>{const el=document.getElementById("kg_"+id);if(el){el.readOnly=false;el.classList.remove("auto");el.title=""}})}
+function nv(k,tot){if(k==="deb"){return 10000*(nv("na",tot)/23+nv("k",tot)/39.1-nv("cl",tot)/35.45)}return tot?ING.reduce((a,i)=>a+(KG[i.id]||0)*(i[k]||0),0)/tot:0}
+
+function lpSolve(c,A,b,types){
+  const m=A.length,n=c.length;A=A.map(r=>r.slice());b=b.slice();types=types.slice();
+  for(let i=0;i<m;i++){const s=Math.max(...A[i].map(Math.abs),1e-12);A[i]=A[i].map(v=>v/s);b[i]/=s;
+    if(b[i]<0){A[i]=A[i].map(v=>-v);b[i]=-b[i];types[i]=types[i]==="le"?"ge":types[i]==="ge"?"le":"eq"}}
+  let N=n;const ex=types.map(t=>{const e={};if(t==="le")e.s=N++;else if(t==="ge"){e.s=N++;e.a=N++}else e.a=N++;return e});
+  const isArt=new Array(N).fill(false),T=[],basis=[];
+  for(let i=0;i<m;i++){const row=new Array(N+1).fill(0);for(let j=0;j<n;j++)row[j]=A[i][j];const e=ex[i];
+    if(types[i]==="le"){row[e.s]=1;basis.push(e.s)}else{if(types[i]==="ge")row[e.s]=-1;row[e.a]=1;isArt[e.a]=true;basis.push(e.a)}
+    row[N]=b[i];T.push(row)}
+  const pivot=(r,k)=>{const pv=T[r][k];for(let j=0;j<=N;j++)T[r][j]/=pv;for(let i=0;i<m;i++){if(i===r)continue;const f=T[i][k];if(f!==0)for(let j=0;j<=N;j++)T[i][j]-=f*T[r][j]}basis[r]=k};
+  const run=(cost,ok)=>{for(let it=0;it<20000;it++){let en=-1;
+      for(let j=0;j<N;j++){if(!ok(j))continue;let rc=cost[j];for(let i=0;i<m;i++)rc-=cost[basis[i]]*T[i][j];if(rc<-1e-9){en=j;break}}
+      if(en<0)return "opt";let lv=-1,best=Infinity;
+      for(let i=0;i<m;i++)if(T[i][en]>1e-9){const r=T[i][N]/T[i][en];if(r<best-1e-12||(Math.abs(r-best)<=1e-12&&basis[i]<basis[lv])){best=r;lv=i}}
+      if(lv<0)return "unbounded";pivot(lv,en)}return "limit"};
+  run(isArt.map(a=>a?1:0),()=>true);
+  let inf=0;for(let i=0;i<m;i++)if(isArt[basis[i]])inf+=T[i][N];
+  if(inf>1e-6)return null;
+  for(let i=0;i<m;i++)if(isArt[basis[i]]){for(let j=0;j<N;j++)if(!isArt[j]&&Math.abs(T[i][j])>1e-9){pivot(i,j);break}}
+  const c2=new Array(N).fill(0);for(let j=0;j<n;j++)c2[j]=c[j];
+  if(run(c2,j=>!isArt[j])!=="opt")return null;
+  const x=new Array(n).fill(0);for(let i=0;i<m;i++)if(basis[i]<n)x[basis[i]]=T[i][N];return x;
+}
+var LC_FIXED=["premix","tm","vitese","vitc","vitd3","enz","phytase","emul","addit","betaine","liver","binder","choline","enra","cocci","tiam","ctc","sulpha"];
+var LC_UNDO=null;
+function buildLP(skipK,onlyK){
+  const T=parseFloat($("#scaleTo").value)||1050,g=LGROUP[STAGE]??2,st=STAGES[STAGE].t;
+  const vars=ING.filter(i=>!i.med&&!(LOCK[i.id]&&KG[i.id]>0)&&isUsed(i)&&(PRICE[i.id]||0)>0&&!LC_FIXED.includes(i.id)&&!(LIMITS[i.id]&&LIMITS[i.id][g]===0));
+  const fixed=ING.filter(i=>!vars.includes(i)&&(KG[i.id]||0)>0);
+  const fkg=fixed.reduce((a,i)=>a+KG[i.id],0);
+  const fsum=k=>fixed.reduce((a,i)=>a+KG[i.id]*(i[k]||0),0);
+  const A=[],b=[],ty=[],labels=[];
+  A.push(vars.map(()=>1));b.push(T-fkg);ty.push("eq");labels.push("total");
+  const debv=i=>10000*((i.na||0)/23+(i.k||0)/39.1-(i.cl||0)/35.45);
+  for(const n of NUTS){if(n.k==="d3"||n.k===skipK||(onlyK&&n.k!==onlyK))continue;if(n.k==="sand"&&CONC_MIN[STAGE]&&isUsed(ING.find(x=>x.id==="lc40")))continue;if(n.k==="deb"&&CONC_MIN[STAGE]&&isUsed(ING.find(x=>x.id==="lc40")))continue;const [lo0,hi0]=st[n.k];const lo=lo0*1.002,hi=hi0*0.998;
+    const coef=n.k==="deb"?vars.map(debv):vars.map(i=>i[n.k]||0);
+    const f=n.k==="deb"?fixed.reduce((a,i)=>a+KG[i.id]*debv(i),0):fsum(n.k);
+    A.push(coef);b.push(lo*T-f);ty.push("ge");labels.push(n.k);
+    if(!["lys","tsaa","thr"].includes(n.k)){A.push(coef);b.push(hi*T-f);ty.push("le");labels.push(n.k)}}
+  vars.forEach((i,j)=>{const L=LIMITS[i.id];const mx=i.id==="lc40"?CONC_MAX[STAGE]:(L?L[g]:null);if(mx!==null&&mx!==undefined){const r=vars.map((_,q)=>q===j?1:0);A.push(r);b.push(mx/100*T*0.998);ty.push("le");labels.push("max:"+i.id)}});
+  {const j=vars.findIndex(i=>i.id==="lc40");const mn=CONC_MIN[STAGE];if(j>=0&&mn){const r=vars.map((_,q)=>q===j?1:0);A.push(r);b.push(mn/100*T*0.998);ty.push("ge");labels.push("min:lc40")}}
+  return {vars,A,b,ty,c:vars.map(i=>PRICE[i.id])};
+}
+function leastCost(){
+  const box=$("#lcMsg");
+  const msg=(t,ok)=>{box.innerHTML=t;box.className="wtalert "+(ok?"ok":"bad");box.scrollIntoView({behavior:"smooth",block:"center"})};
+  const unpriced=ING.filter(i=>isUsed(i)&&!i.med&&!LC_FIXED.includes(i.id)&&!(PRICE[i.id]>0)&&!(i.lib&&!(KG[i.id]>0)&&USE[i.id]!==true)).map(i=>i.n);
+  const upTxt=(unpriced.length?`<br>Ticked but no ₹/kg price (not used): ${unpriced.join(", ")}. Enter them once in the ₹ Price list (saved for next time).`:"")+(()=>{const g=LGROUP[STAGE]??2;const off=ING.filter(i=>!isUsed(i)&&PRICE[i.id]>0&&!i.med&&!LC_FIXED.includes(i.id)&&!(LIMITS[i.id]&&LIMITS[i.id][g]===0)).map(i=>i.n);return off.length?`<br>Priced but <b>not ticked</b> (not used): ${off.join(", ")}. Tick them if you have them.`:""})();
+  const LC_PREV={...KG};
+  {const g=LGROUP[STAGE]??2;const removed=[];ING.forEach(i=>{const L=LIMITS[i.id];const drugs=["enra","cocci","tiam","ctc","sulpha"];if(L&&L[g]===0&&(KG[i.id]||0)>0&&(!LC_FIXED.includes(i.id)||drugs.includes(i.id)||i.med)&&!AUTO_IDS.includes(i.id)){removed.push(i.n);delete KG[i.id]}});
+   if(removed.length){calc()}window.LC_REMOVED=removed}
+  const used=ING.filter(i=>(KG[i.id]||0)>0&&!LC_FIXED.includes(i.id)&&!(PRICE[i.id]>0));
+  const P=buildLP();
+  if(P.vars.length<2){msg("<b>Least-cost needs prices.</b> Enter ₹/kg in the last column for the materials you have (maize, soya, DCP, salt, calcite, DL-methionine and so on). Only ticked materials with a price are used."+upTxt);return}
+  const x=lpSolve(P.c,P.A,P.b,P.ty);
+  if(!x){const bad=NUTS.filter(n=>n.k!=="d3"&&(()=>{const Q=buildLP(null,n.k);return !lpSolve(Q.c,Q.A,Q.b,Q.ty)})()).map(n=>n.n);
+    let hint=bad.length?` Cannot be reached with the priced ingredients: <b>${bad.join(", ")}</b>.`:"";
+    if(!bad.length){for(const n of NUTS){if(n.k==="d3")continue;const Q=buildLP(n.k);if(lpSolve(Q.c,Q.A,Q.b,Q.ty)){hint=` Every target can be met alone, but not together with <b>${n.n}</b>.`;break}}}
+    KG={...LC_PREV};buildIng();calc();msg("<b>No mix meets every target with the priced materials.</b>"+hint+" Add prices for more materials (for example DCP, salt, soda salt, calcite, shell grit, DL-methionine, L-lysine, oil)."+upTxt);return}
+  const before=ING.reduce((a,i)=>a+(KG[i.id]||0)*(PRICE[i.id]||0),0)/(ING.reduce((a,i)=>a+(KG[i.id]||0),0)||1);
+  LC_UNDO=LC_PREV;LC_LOCK=true;
+  P.vars.forEach((i,j)=>{const v=Math.round(x[j]*100)/100;const bulk=(i.cp||0)>2||(i.me||0)>1000;if(v>=(bulk?0.5:0.01))KG[i.id]=v;else delete KG[i.id]});
+  buildIng();calc();
+  {const T=parseFloat($("#scaleTo").value)||1050,tot=ING.reduce((a,i)=>a+(KG[i.id]||0),0),d=T-tot;
+   const big=(KG.maize>0&&P.vars.find(i=>i.id==="maize"))||P.vars.filter(i=>KG[i.id]>0&&(i.me||0)>2000).sort((a,b)=>KG[b.id]-KG[a.id])[0];
+   if(big&&Math.abs(d)>0.01){KG[big.id]=Math.round((KG[big.id]+d)*100)/100;buildIng();calc()}}
+  const after=ING.reduce((a,i)=>a+(KG[i.id]||0)*(PRICE[i.id]||0),0)/(ING.reduce((a,i)=>a+(KG[i.id]||0),0)||1);
+  $("#lcUndo").hidden=false;
+  msg(`<b>Least-cost mix applied: ₹${fmt(after,2)}/kg</b> (was ₹${fmt(before,2)}/kg).`+(used.length?` Not priced, so kept as they were: ${used.map(i=>i.n).join(", ")}.`:"")+(window.LC_REMOVED&&window.LC_REMOVED.length?` Removed (not allowed in this stage): ${window.LC_REMOVED.join(", ")}.`:"")+" Additives and medicines were kept as they are.",true);
+}
+function calc(){
+  autoAdd();
+  ING.forEach(i=>{if((USE[i.id]===false&&KG[i.id])||KG[i.id]<0)delete KG[i.id]});
+  matchWeight();
+  const tot=ING.reduce((s,i)=>s+(KG[i.id]||0),0);
+  let cost=0,costKnown=false;
+  ING.forEach(i=>{const kg=KG[i.id]||0;{const pc=$("#pc_"+i.id);if(pc){pc.textContent=tot?fmt(kg/tot*100,2)+"%":"–";const L=LIMITS[i.id],tr=pc.parentElement,w=$("#w_"+i.id);const max=i.id==="lc40"?CONC_MAX[STAGE]*1.005:(L?L[LGROUP[STAGE]??2]:null);{const mx=$("#mx_"+i.id);if(mx)mx.textContent=L?(max===0?"Not used":fmt(max,max<1?3:1)+"%"):"Label"}const pct=tot?kg/tot*100:0;const high=(L||i.id==="lc40")&&max!==null&&kg>0&&pct>max*1.005+1e-9;tr.classList.toggle("over",!!high);tr.classList.toggle("zero",!(kg>0));if(w)w.textContent=high?(max===0?"HIGH – not for this stage. ":"HIGH – max "+fmt(max,max<1?3:1)+"%. ")+L[3]:"";const rem=i.id==="cocci"&&USE.cocci===true&&["chick","grower","dev"].includes(STAGE)&&!(kg>0);tr.classList.toggle("remind",rem);if(rem&&w)w.textContent="Reminder: add a coccidiostat at label dose, unless the birds are vaccinated against coccidiosis.";
+  {const wy=$("#why_"+i.id);if(wy){const used=isUsed(i),auto=AUTO_IDS.includes(i.id)||(BAL_IDS.includes(i.id)&&!!concInfo()),CI=concInfo();let t="",cls="";
+   if(!used){t="Not ticked: not used or checked";cls="mute"}
+   else if(i.id==="lc40"&&kg>0&&!SEL.lc40){t="Choose concentrate brand so its premixes are counted";cls="warn2"}
+   else if(i.id==="lc40"&&kg>0&&CI&&CI.noRate){t="Brand has no inclusion rate: premixes added at full dose. Set kg per ton in My products";cls="warn2"}
+   else if(max===0&&kg>0){t="Not allowed in this stage";cls="bad2"}
+   else if(max===0){t="Not for this stage";cls="mute"}
+   else if(isUsed(i)&&!(kg>0)&&!AUTO_IDS.includes(i.id)&&!(BAL_IDS||[]).includes(i.id)&&!(PCATS&&PCATS[i.id])&&!(max===0)){t=PRICE[i.id]>0?"Ticked, 0 kg: type kg (and tick Keep in the Keep column), or least-cost adds it only if it lowers cost":"Ticked, 0 kg: type kg here, or add a price for least-cost";cls="warn2"}
+   else if(!(kg>0)){
+     if(AUTO_IDS.includes(i.id)&&AUTO_ON){t=(CI&&((i.id==="premix"&&CI.has.vit)||(i.id==="tm"&&CI.has.tm)||(i.id==="binder"&&CI.has.binder)))?"0: covered by concentrate":(i.id==="emul"?"0: added only when oil is used":["vitese","vitc","betaine"].includes(i.id)?"0: chick to pre-lay only":"0: auto");cls="mute"}
+     else if(BAL_IDS.includes(i.id)&&CI){t="0: concentrate already supplies enough";cls="mute"}
+     else if(PCATS[i.id]&&!SEL[i.id]){t="No kg: choose a brand or type kg";cls="warn2"}
+     else{t="No kg entered";cls="mute"}}
+   else if(i.id==="lc40"&&CONC_MIN[STAGE]&&kg>0){const pc=tot?kg/tot*100:0;t=pc<CONC_MIN[STAGE]*0.99?"Set at "+CONC_MIN[STAGE]+"% for this stage: now "+fmt(pc,1)+"%":"Fixed at "+CONC_MIN[STAGE]+"% (main protein source)";cls=pc<CONC_MIN[STAGE]*0.99?"warn2":"okc"}
+   else if(LOCK[i.id]&&kg>0){t="Kept at your kg: least-cost will not change it";cls="okc"}
+   else if(MATCH_ON&&i.id===FILLER){t="Auto: adjusted to match batch weight";cls="okc"}
+   else if(auto&&(i.id==="premix"||i.id==="tm")&&(PREMIX_BOOST[STAGE]||1)>1){t="Auto-added: label dose +25% for "+STAGES[STAGE].n;cls="okc"}
+   else if(auto){t=BAL_IDS.includes(i.id)?"Auto top-up (only the shortfall)":"Auto-added";cls="okc"}
+   else if(!(PRICE[i.id]>0)&&!LC_FIXED.includes(i.id)&&!i.med){t="No price: least-cost cannot change it";cls="warn2"}
+   else if(!(PRICE[i.id]>0)){t="No price: not in cost";cls="mute"}
+   else{t="OK";cls="okc"}
+   wy.textContent=t;wy.className="why "+cls}}
+  }}if(PRICE[i.id]){cost+=kg*PRICE[i.id];costKnown=true}});
+  $("#totKg").textContent=fmt(tot,2);
+  {const set=parseFloat($("#scaleTo").value)||0,d=tot-set,el=$("#wtAlert");
+   if(!tot||!set){el.className="wtalert";el.textContent=""}
+   else if(Math.abs(d)<0.05){el.className="wtalert ok";el.textContent=`OK – batch total ${fmt(tot,2)} kg matches the set weight.`}
+   else if(MATCH_ON&&MATCH_SHORT>0){el.className="wtalert bad";el.innerHTML=`<b>OVER by ${fmt(d,2)} kg</b>: the other materials already weigh more than ${fmt(set,0)} kg, so ${ING.find(i=>i.id===FILLER).n} cannot be reduced further. Reduce another material or raise the set weight.`}
+   else{el.className="wtalert bad";el.innerHTML=d>0?`<b>OVER by ${fmt(d,2)} kg</b> (total ${fmt(tot,2)} kg vs set ${fmt(set,0)} kg). Reduce maize by ${fmt(d,2)} kg, or tap “Scale all to set weight”.`:`<b>UNDER by ${fmt(-d,2)} kg</b> (total ${fmt(tot,2)} kg vs set ${fmt(set,0)} kg). Add ${fmt(-d,2)} kg maize, or tap “Scale all to set weight”.`}}
+  $("#totCost").textContent=costKnown?"₹"+fmt(cost,0):"—";
+  const res={};NUTS.forEach(n=>{res[n.k]=nv(n.k,tot)});
+  const st=STAGES[STAGE];
+  let okCount=0;
+  $("#results").innerHTML=NUTS.map(n=>{
+    const [lo,hi]=st.t[n.k];const v=res[n.k];
+    const CIv=n.k==="d3"&&!(KG.vitd3>0)&&(()=>{const c=concInfo();return c&&c.has.vit&&(Math.min(1,c.frac)+premixFrac("premix",500))>=0.95})();
+    const status=CIv?"ok":(v<lo?"low":v>hi?"high":"ok"); if(status==="ok")okCount++;
+    if(CIv)return `<div class="row"><div class="lbl">${n.n}<span class="chip ok">OK</span></div><div class="val">from concentrate</div><div class="band">Supplied by concentrate + premix</div><div></div></div>`;
+    const span=(hi-lo)||hi*0.1;const min=Math.max(0,lo-span*1.5),max=hi+span*1.5;
+    const pos=x=>Math.min(100,Math.max(0,(x-min)/(max-min)*100));
+    return `<div class="row${status!=="ok"?" bad":""}">
+      <div class="lbl">${n.n}<span class="chip ${status}">${status.toUpperCase()}</span></div>
+      <div class="val">${fmt(v,n.d)}${n.u}</div>
+      <div class="band">Target ${fmt(lo,n.d)}–${fmt(hi,n.d)}${n.u}</div><div></div>
+      <div class="bar" aria-hidden="true"><span class="zone" style="left:${pos(lo)}%;width:${pos(hi)-pos(lo)}%"></span><span class="mark" style="left:calc(${pos(v)}% - 1px)"></span></div>
+      ${status!=="ok"?`<div class="effect"><b>Ill effect:</b> ${((LGROUP[STAGE]??2)<2&&EFFECTS_YOUNG[n.k]&&EFFECTS_YOUNG[n.k][status])||EFFECTS[n.k][status]}</div><div class="tip"><b>Fix:</b> ${TIPS[n.k][status]}</div>`:""}
+    </div>`}).join("");
+  const perKg=costKnown&&tot?cost/tot:null;const unpricedN=ING.filter(i=>(KG[i.id]||0)>0&&!(PRICE[i.id]>0)).length;
+  const VR=renderVits(tot)||{ok:0,n:0},MR=renderMins(tot)||{ok:0,n:0};$("#summary").innerHTML=`<span>Batch <b>${fmt(tot,1)} kg</b></span><span>On target <b>${okCount+VR.ok+MR.ok}/${NUTS.length+VR.n+MR.n}</b></span>${perKg?`<span>Cost <b>₹${fmt(perKg,2)}/kg</b>${unpricedN?` <span style="color:var(--low)">(partial: ${unpricedN} item${unpricedN>1?"s":""} without price)</span>`:""}</span>`:`<span>Enter ₹/kg to see cost</span>`}`;
+  store.set("ff_kg",KG);store.set("ff_price",PRICE);store.set("ff_ing",ING);store.set("ff_stage",STAGE);
+}
+buildSelects();buildIng();buildVals();calc();
+$("#stage").addEventListener("change",e=>{STAGE=e.target.value;LC_LOCK=false;calc()});
+$("#autoAdd").checked=AUTO_ON;
+{const fs=$("#fillerSel");const opts=["maize","rice","wheat","jowar","bajra","dorb","soya"];fs.innerHTML=opts.map(id=>{const i=ING.find(x=>x.id===id);return i?`<option value="${id}">${i.n}</option>`:""}).join("");fs.value=FILLER;$("#matchOn").checked=MATCH_ON;
+ $("#matchOn").addEventListener("change",e=>{MATCH_ON=e.target.checked;try{localStorage.setItem("ff_match",MATCH_ON?"1":"0")}catch(x){}calc()});
+ fs.addEventListener("change",e=>{FILLER=e.target.value;try{localStorage.setItem("ff_filler",FILLER)}catch(x){}USE[FILLER]=true;buildIng();calc()});}
+
+var SAVED=(()=>{try{return JSON.parse(localStorage.getItem("ff_saved"))||[]}catch(e){return []}})();
+const putSaved=()=>{try{localStorage.setItem("ff_saved",JSON.stringify(SAVED))}catch(e){}};
+function fillPresets(sel){
+  const saved=SAVED.map((f,i)=>`<option value="saved:${i}">${esc(f.name)} · ${f.date}</option>`).join("");
+  $("#preset").innerHTML=(saved?`<optgroup label="My saved formulas">${saved}</optgroup>`:"")+`<optgroup label="Ready formulas">${Object.entries(PRESETS).map(([k,p])=>`<option value="${k}">${p.n}</option>`).join("")}</optgroup>`;
+  if(sel)$("#preset").value=sel;
+  $("#delSavedBtn").hidden=!$("#preset").value.startsWith("saved:");
+}
+function saveMsg(t){$("#saveMsg").textContent=t}
+function saveFile(name,text){
+  (async()=>{try{const dl=await Promise.resolve(window.claude?.use?.("downloads")).catch(()=>null);
+    if(dl){await dl.save({filename:name,data:text});saveMsg("Backup saved as "+name+".");return}}catch(e){if(e&&e.code==="declined")return}
+    const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([text],{type:"application/json"}));a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1000);saveMsg("Backup file "+name+" downloaded.")})();
+}
+$("#saveBtn").addEventListener("click",()=>{
+  const name=$("#saveName").value.trim();if(!name){saveMsg("Type a name for the formula first.");$("#saveName").focus();return}
+  if(!ING.some(i=>(KG[i.id]||0)>0)){saveMsg("The formula is empty; enter kg first.");return}
+  const d=new Date(),date=d.toLocaleDateString("en-IN");
+  const rec={name,date,stage:STAGE,set:parseFloat($("#scaleTo").value)||1050,kg:{...KG},use:{...USE},sel:{...SEL},price:{...PRICE}};
+  const idx=SAVED.findIndex(f=>f.name===name);if(idx>=0)SAVED[idx]=rec;else SAVED.unshift(rec);
+  putSaved();fillPresets("saved:"+SAVED.findIndex(f=>f.name===name));if(typeof renderSavedList==="function")renderSavedList();
+  saveMsg(`Saved “${name}” (${STAGES[STAGE].n}, ${fmt(ING.reduce((a,i)=>a+(KG[i.id]||0),0),1)} kg).`+(idx>=0?" Replaced the earlier copy with the same name.":""));
+});
+$("#preset").addEventListener("change",()=>{$("#delSavedBtn").hidden=!$("#preset").value.startsWith("saved:")});
+$("#delSavedBtn").addEventListener("click",()=>{const b=$("#delSavedBtn");
+  if(b.dataset.armed!=="1"){b.dataset.armed="1";b.textContent="Tap again to delete";setTimeout(()=>{b.dataset.armed="";b.textContent="Delete this saved formula"},3000);return}
+  const i=+$("#preset").value.split(":")[1];const n=SAVED[i]&&SAVED[i].name;SAVED.splice(i,1);putSaved();fillPresets();saveMsg(n?`Deleted “${n}”.`:"")});
+$("#exportBtn").addEventListener("click",()=>{
+  const d=new Date().toISOString().slice(0,10);saveFile(`feed-formulas-${d}.json`,JSON.stringify({app:"FeedFormula",version:1,formulas:SAVED,products:PRODUCTS,meds:MEDS,prices:PRICE,priceDate:PRICE_DATE,raws:RAWS,limits:getJ("ff_limits")||{},targets:getJ("ff_targets")||{},stageopts:getJ("ff_stageopts")||null},null,1))});
+$("#importFile").addEventListener("change",e=>{const f=e.target.files&&e.target.files[0];if(!f)return;const r=new FileReader();
+  r.onload=()=>{try{const j=JSON.parse(r.result);if(!j||!Array.isArray(j.formulas))throw 0;let n=0;
+      if(Array.isArray(j.raws))j.raws.forEach(r=>{if(r&&r.id&&!ING.find(i=>i.id===r.id)){RAWS.push(r);ING.push({...r.nut,id:r.id,n:r.n,raw:true});LIMITS[r.id]=[r.lim[0],r.lim[1],r.lim[2],"Above the limit set in Raw material master."]}});putJ("ff_raws",RAWS);
+      if(j.limits)for(const [id,v] of Object.entries(j.limits))if(Array.isArray(v)){LIMITS[id]=[v[0],v[1],v[2],(LIMITS[id]&&LIMITS[id][3])||""]}if(j.limits)putJ("ff_limits",j.limits);
+      if(j.targets){for(const [st,o] of Object.entries(j.targets))if(STAGES[st])for(const [k,v] of Object.entries(o))STAGES[st].t[k]=v;putJ("ff_targets",j.targets)}
+      if(j.stageopts){Object.assign(CONC_MAX,j.stageopts.CONC_MAX||{});for(const k of Object.keys(CONC_MIN))delete CONC_MIN[k];Object.assign(CONC_MIN,j.stageopts.CONC_MIN||{});Object.assign(PREMIX_BOOST,j.stageopts.PREMIX_BOOST||{});putJ("ff_stageopts",j.stageopts)}if(j.prices&&typeof j.prices==="object"){for(const [k,v] of Object.entries(j.prices))if(v>0)PRICE[k]=v;if(j.priceDate){PRICE_DATE=j.priceDate;try{localStorage.setItem("ff_price_date",PRICE_DATE)}catch(x){}}}
+      j.formulas.forEach(x=>{if(!x||!x.name||!x.kg)return;const k=SAVED.findIndex(y=>y.name===x.name);if(k>=0)SAVED[k]=x;else SAVED.push(x);n++});
+      if(j.products)for(const [c,list] of Object.entries(j.products)){PRODUCTS[c]=PRODUCTS[c]||[];(list||[]).forEach(pr=>{if(pr&&pr.name&&!PRODUCTS[c].find(q=>q.name===pr.name))PRODUCTS[c].push(pr)})}
+      if(Array.isArray(j.meds))j.meds.forEach(m=>{if(m&&m.id&&!MEDS.find(x=>x.id===m.id)){MEDS.push(m);ING.push(medToIng(m));medLimits(m)}});
+      putSaved();saveProds();saveMeds();renderProdList();fillPresets();buildIng();buildVals();calc();saveMsg(`Imported ${n} formula${n===1?"":"s"}.`)}
+    catch(x){saveMsg("That file is not a Feed Formula backup.")}e.target.value=""};r.readAsText(f)});
+function loadSaved(i){const f=SAVED[i];if(!f)return;LC_LOCK=true;
+  KG={...f.kg};STAGE=f.stage;$("#stage").value=STAGE;$("#scaleTo").value=f.set||1050;
+  for(const [id,v] of Object.entries(f.use||{}))if(KG[id]>0||v===false)USE[id]=v;
+  if(!(KG.lc40>0))["dcp","salt","lysHcl","dlmet","premix","tm","binder"].forEach(k=>{if(USE[k]===false)USE[k]=true});
+  for(const [c,n] of Object.entries(f.sel||{}))if((PRODUCTS[c]||[]).find(x=>x.name===n))applyProduct(c,n,false);
+  for(const [id,v] of Object.entries(f.price||{}))if(!(PRICE[id]>0)&&v>0)PRICE[id]=v;
+  try{localStorage.setItem("ff_use",JSON.stringify(USE))}catch(e){}
+  buildIng();buildVals();calc();saveMsg(`Loaded “${f.name}” saved on ${f.date}. Current prices are used; missing ones were filled from the saved copy.`);$("#saveName").value=f.name}
+fillPresets();
+
+var PRICE_DATE=(()=>{try{return localStorage.getItem("ff_price_date")||""}catch(e){return ""}})();
+function buildPriceList(){
+  const g=$("#priceGrid");if(!g)return;
+  const items=ING.filter(i=>isUsed(i)||(PRICE[i.id]>0));
+  g.innerHTML=items.map(i=>`<label class="f">${esc(i.n)}<input class="num" type="number" min="0" step="0.5" data-pl="${i.id}" value="${PRICE[i.id]||""}" placeholder="₹/kg"></label>`).join("")||`<p class="hint">Tick materials in the table first.</p>`;
+  g.querySelectorAll("input[data-pl]").forEach(el=>el.addEventListener("input",()=>{const id=el.dataset.pl,v=Math.max(0,parseFloat(el.value)||0);PRICE[id]=v;
+    PRICE_DATE=new Date().toLocaleDateString("en-IN");try{localStorage.setItem("ff_price_date",PRICE_DATE)}catch(e){}
+    const t=$("#pr_"+id);if(t)t.value=v||"";calc();$("#priceMsg").textContent="Saved. Prices last updated "+PRICE_DATE+"."}));
+  const n=ING.filter(i=>isUsed(i)&&!(PRICE[i.id]>0)&&!LC_FIXED.includes(i.id)&&!i.med).length;
+  $("#priceMsg").textContent=(PRICE_DATE?"Prices last updated "+PRICE_DATE+". ":"")+(n?n+" ticked material"+(n>1?"s":"")+" still without a price.":"All ticked materials have a price.");
+}
+$("#priceBox").addEventListener("toggle",()=>{if($("#priceBox").open)buildPriceList()});
+
+/* ===== Software shell: tabs + masters ===== */
+var NUT_EDIT=NUTS.filter(n=>!n.calc&&n.k!=="d3");
+var DEF_LIMITS=JSON.parse(JSON.stringify(LIMITS));
+var DEF_STAGES=JSON.parse(JSON.stringify(STAGES));
+var DEF_OPTS={CONC_MAX:{...CONC_MAX},CONC_MIN:{...CONC_MIN},PREMIX_BOOST:{...PREMIX_BOOST}};
+var RAWS=(()=>{try{return JSON.parse(localStorage.getItem("ff_raws"))||[]}catch(e){return []}})();
+const putJ=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
+const getJ=k=>{try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}};
+// apply saved overrides
+{const lo=getJ("ff_limits");if(lo)for(const [id,v] of Object.entries(lo))if(Array.isArray(v))LIMITS[id]=[v[0],v[1],v[2],(LIMITS[id]&&LIMITS[id][3])||"Above the limit set in Raw material master."];
+ RAWS.forEach(r=>{if(!ING.find(i=>i.id===r.id))ING.push({...r.nut,id:r.id,n:r.n,raw:true});LIMITS[r.id]=[r.lim[0],r.lim[1],r.lim[2],"Above the limit set in Raw material master."]});
+ const tg=getJ("ff_targets");if(tg)for(const [st,o] of Object.entries(tg))if(STAGES[st])for(const [k,v] of Object.entries(o))STAGES[st].t[k]=v;
+ const so=getJ("ff_stageopts");if(so){Object.assign(CONC_MAX,so.CONC_MAX||{});for(const k of Object.keys(CONC_MIN))delete CONC_MIN[k];Object.assign(CONC_MIN,so.CONC_MIN||{});Object.assign(PREMIX_BOOST,so.PREMIX_BOOST||{})}}
+const saveLimits=()=>{const o={};for(const [id,v] of Object.entries(LIMITS))if(!DEF_LIMITS[id]||JSON.stringify(v.slice(0,3))!==JSON.stringify(DEF_LIMITS[id].slice(0,3)))o[id]=v.slice(0,3);putJ("ff_limits",o)};
+const isFeedRaw=i=>!i.med&&!(PCATS&&PCATS[i.id])&&(i.raw||NUT_EDIT.some(n=>(i[n.k]||0)!==0));
+function renderRaw(){
+  const heads=NUT_EDIT.map(n=>`<th>${n.k==="me"?"ME":n.k==="tsaa"?"M+C":n.k==="la"?"Linoleic":n.k.toUpperCase()}</th>`).join("");
+  $("#rawTable thead").innerHTML=`<tr><th>Raw material</th>${heads}<th>Max % chick</th><th>Max % grower</th><th>Max % layer</th><th></th></tr>`;
+  $("#rawTable tbody").innerHTML=ING.filter(isFeedRaw).map(i=>{const L=LIMITS[i.id]||[null,null,null];
+    return `<tr><td class="name">${i.raw?`<input type="text" data-rn="${i.id}" value="${esc(i.n)}">`:esc(i.n)}</td>${NUT_EDIT.map(n=>`<td><input class="num" type="number" step="0.01" data-rv="${i.id}|${n.k}" value="${i[n.k]??0}"></td>`).join("")}
+    ${[0,1,2].map(g=>`<td><input class="num" type="number" step="0.01" min="0" data-rl="${i.id}|${g}" value="${L[g]??""}" placeholder="none"></td>`).join("")}
+    <td>${i.raw?`<button type="button" class="ghost sm" data-rdel="${i.id}">Delete</button>`:""}</td></tr>`}).join("");
+  $("#rawTable tbody").querySelectorAll("input[data-rv]").forEach(el=>el.addEventListener("input",()=>{const [id,k]=el.dataset.rv.split("|");const ing=ING.find(x=>x.id===id);ing[k]=parseFloat(el.value)||0;const r=RAWS.find(x=>x.id===id);if(r){r.nut[k]=ing[k];putJ("ff_raws",RAWS)}calc()}));
+  $("#rawTable tbody").querySelectorAll("input[data-rl]").forEach(el=>el.addEventListener("input",()=>{const [id,g]=el.dataset.rl.split("|");const v=el.value===""?null:Math.max(0,parseFloat(el.value)||0);
+    if(!LIMITS[id])LIMITS[id]=[null,null,null,"Above the limit set in Raw material master."];LIMITS[id][+g]=v;if(LIMITS[id].slice(0,3).every(x=>x===null))delete LIMITS[id];
+    const r=RAWS.find(x=>x.id===id);if(r){r.lim[+g]=v;putJ("ff_raws",RAWS)}else saveLimits();calc()}));
+  $("#rawTable tbody").querySelectorAll("input[data-rn]").forEach(el=>el.addEventListener("input",()=>{const id=el.dataset.rn;const ing=ING.find(x=>x.id===id);ing.n=el.value||"Unnamed";const r=RAWS.find(x=>x.id===id);if(r){r.n=ing.n;putJ("ff_raws",RAWS)}}));
+  $("#rawTable tbody").querySelectorAll("button[data-rdel]").forEach(btn=>btn.addEventListener("click",()=>{
+    if(btn.dataset.armed!=="1"){btn.dataset.armed="1";btn.textContent="Tap again";setTimeout(()=>{btn.dataset.armed="";btn.textContent="Delete"},3000);return}
+    const id=btn.dataset.rdel;RAWS=RAWS.filter(x=>x.id!==id);putJ("ff_raws",RAWS);ING=ING.filter(x=>x.id!==id);delete LIMITS[id];delete KG[id];delete USE[id];renderRaw();buildIng();buildVals();calc()}));
+}
+$("#rwFields").innerHTML=NUT_EDIT.map(n=>`<label class="f">${n.n}${n.u.trim()==="%"?" %":n.u}<input class="num" type="number" step="0.01" data-rw="${n.k}" placeholder="0"></label>`).join("")+
+  ["Chick","Grower","Layer"].map((s,g)=>`<label class="f">Max % ${s}<input class="num" type="number" step="0.01" min="0" data-rwl="${g}" placeholder="none"></label>`).join("");
+$("#rawForm").addEventListener("submit",e=>{e.preventDefault();const n=$("#rwName").value.trim();if(!n){$("#rwMsg").textContent="Enter a name.";return}
+  const id="raw_"+n.toLowerCase().replace(/[^a-z0-9]+/g,"_").slice(0,30);if(ING.find(i=>i.id===id)){$("#rwMsg").textContent="A material with that name already exists.";return}
+  const nut={};NUT_EDIT.forEach(x=>{nut[x.k]=parseFloat(($(`[data-rw="${x.k}"]`)||{}).value)||0});nut.d3=0;
+  const lim=[0,1,2].map(g=>{const v=$(`[data-rwl="${g}"]`).value;return v===""?null:Math.max(0,parseFloat(v)||0)});
+  RAWS.push({id,n,nut,lim});putJ("ff_raws",RAWS);ING.push({...nut,id,n,raw:true});LIMITS[id]=[lim[0],lim[1],lim[2],"Above the limit set in Raw material master."];USE[id]=true;putJ("ff_use",USE);
+  renderRaw();buildIng();buildVals();calc();$("#rwMsg").textContent=`Added ${n}. It is ticked in Formulation; type kg or give it a price for least-cost.`;
+  $("#rwName").value="";document.querySelectorAll("#rawForm input.num").forEach(x=>x.value="")});
+$("#rawReset").addEventListener("click",()=>{const b=$("#rawReset");if(b.dataset.armed!=="1"){b.dataset.armed="1";b.textContent="Tap again to reset built-in values";setTimeout(()=>{b.dataset.armed="";b.textContent="Reset built-in values to defaults"},3000);return}
+  DEFAULT_ING.forEach(d=>{const ing=ING.find(i=>i.id===d.id);if(ing&&!(PCATS&&PCATS[d.id]))NUT_EDIT.forEach(n=>ing[n.k]=d[n.k]??0)});
+  for(const [id,v] of Object.entries(DEF_LIMITS))LIMITS[id]=JSON.parse(JSON.stringify(v));putJ("ff_limits",{});renderRaw();buildIng();calc();b.dataset.armed="";b.textContent="Reset built-in values to defaults"});
+const ORDER=["chick","grower","dev","plm","l1","l2"];
+function renderTargets(){
+  $("#tgTable thead").innerHTML=`<tr><th rowspan="2">Nutrient</th>${ORDER.map(s=>`<th colspan="2">${STAGES[s].n}</th>`).join("")}</tr><tr>${ORDER.map(()=>"<th>min</th><th>max</th>").join("")}</tr>`;
+  $("#tgTable tbody").innerHTML=NUTS.map(n=>`<tr><td class="name">${n.n}<div class="hint">${n.u.trim()}</div></td>${ORDER.map(s=>{const [lo,hi]=STAGES[s].t[n.k];return `<td><input class="num" type="number" step="any" data-tg="${s}|${n.k}|0" value="${lo}"></td><td><input class="num" type="number" step="any" data-tg="${s}|${n.k}|1" value="${hi}"></td>`}).join("")}</tr>`).join("");
+  $("#tgTable tbody").querySelectorAll("input[data-tg]").forEach(el=>el.addEventListener("input",()=>{const [s,k,j]=el.dataset.tg.split("|");const v=parseFloat(el.value);if(isNaN(v))return;STAGES[s].t[k][+j]=v;
+    const o={};ORDER.forEach(st=>{for(const n of NUTS){const a=STAGES[st].t[n.k],d=DEF_STAGES[st].t[n.k];if(a[0]!==d[0]||a[1]!==d[1]){o[st]=o[st]||{};o[st][n.k]=a}}});putJ("ff_targets",o);
+    el.classList.toggle("badin",STAGES[s].t[k][0]>STAGES[s].t[k][1]);calc()}));
+  $("#soTable tbody").innerHTML=ORDER.map(s=>`<tr><td class="name">${STAGES[s].n}</td><td><input class="num" type="number" min="0" max="100" step="1" data-so="CONC_MAX|${s}" value="${CONC_MAX[s]??0}"></td><td><input class="num" type="number" min="0" max="100" step="1" data-so="CONC_MIN|${s}" value="${CONC_MIN[s]??0}"></td><td><input class="num" type="number" min="0" max="200" step="1" data-so="PREMIX_BOOST|${s}" value="${Math.round(((PREMIX_BOOST[s]||1)-1)*100)}"></td></tr>`).join("");
+  $("#soTable tbody").querySelectorAll("input[data-so]").forEach(el=>el.addEventListener("input",()=>{const [obj,s]=el.dataset.so.split("|");const v=Math.max(0,parseFloat(el.value)||0);
+    if(obj==="CONC_MAX")CONC_MAX[s]=v;else if(obj==="CONC_MIN"){if(v>0)CONC_MIN[s]=v;else delete CONC_MIN[s]}else{if(v>0)PREMIX_BOOST[s]=1+v/100;else delete PREMIX_BOOST[s]}
+    putJ("ff_stageopts",{CONC_MAX,CONC_MIN,PREMIX_BOOST});calc()}));
+}
+$("#tgReset").addEventListener("click",()=>{const b=$("#tgReset");if(b.dataset.armed!=="1"){b.dataset.armed="1";b.textContent="Tap again to reset targets";setTimeout(()=>{b.dataset.armed="";b.textContent="Reset targets and options to defaults"},3000);return}
+  ORDER.forEach(s=>{STAGES[s].t=JSON.parse(JSON.stringify(DEF_STAGES[s].t))});for(const k of Object.keys(CONC_MIN))delete CONC_MIN[k];Object.assign(CONC_MAX,DEF_OPTS.CONC_MAX);Object.assign(CONC_MIN,DEF_OPTS.CONC_MIN);
+  for(const k of Object.keys(PREMIX_BOOST))delete PREMIX_BOOST[k];Object.assign(PREMIX_BOOST,DEF_OPTS.PREMIX_BOOST);putJ("ff_targets",{});putJ("ff_stageopts",DEF_OPTS);renderTargets();calc();b.dataset.armed="";b.textContent="Reset targets and options to defaults"});
+function renderMedList(){$("#medList").innerHTML=MEDS.length?MEDS.map(m=>`<div class="pitem"><div><b>${esc(m.name)}</b> <span class="hint">${m.dose} g/t · ${["Chick","Grower","Layer"].filter((_,g)=>m.st[g]).join(", ")||"no stage"}${m.note?" · "+esc(m.note):""}</span></div><button type="button" class="ghost sm" data-mdel="${m.id}">Delete</button></div>`).join(""):`<p class="hint">No medicines added yet.</p>`;
+  $("#medList").querySelectorAll("[data-mdel]").forEach(btn=>btn.addEventListener("click",()=>{if(btn.dataset.armed!=="1"){btn.dataset.armed="1";btn.textContent="Tap again";setTimeout(()=>{btn.dataset.armed="";btn.textContent="Delete"},3000);return}
+    const id=btn.dataset.mdel;MEDS=MEDS.filter(m=>m.id!==id);saveMeds();ING=ING.filter(i=>i.id!==id);delete KG[id];delete LIMITS[id];renderMedList();buildIng();buildVals();calc()}))}
+function renderSavedList(){$("#savedList").innerHTML=SAVED.length?SAVED.map((f,i)=>`<div class="pitem"><div><b>${esc(f.name)}</b> <span class="hint">${f.date} · ${STAGES[f.stage]?STAGES[f.stage].n:f.stage} · ${fmt(Object.values(f.kg).reduce((a,v)=>a+(v||0),0),0)} kg</span></div><div style="display:flex;gap:6px"><button type="button" class="sm" data-sload="${i}">Open</button><button type="button" class="ghost sm" data-sdel="${i}">Delete</button></div></div>`).join(""):`<p class="hint">No saved formulas yet. Save one from Formulation.</p>`;
+  $("#savedList").querySelectorAll("[data-sload]").forEach(b=>b.addEventListener("click",()=>{LC_LOCK=false;loadSaved(+b.dataset.sload);showTab("form")}));
+  $("#savedList").querySelectorAll("[data-sdel]").forEach(b=>b.addEventListener("click",()=>{if(b.dataset.armed!=="1"){b.dataset.armed="1";b.textContent="Tap again";setTimeout(()=>{b.dataset.armed="";b.textContent="Delete"},3000);return}
+    SAVED.splice(+b.dataset.sdel,1);putSaved();fillPresets();renderSavedList()}))}
+// move existing blocks into their master pages
+{$("#prodHome").appendChild($("#prodLib"));$("#prodLib").hidden=false;try{localStorage.setItem("ff_hideprod","0")}catch(e){}$("#hideProdBtn").hidden=true;
+ $("#medHome").appendChild($("#medBox"));$("#medBox").open=true;
+ $("#priceHome").appendChild($("#priceBox"));$("#priceBox").open=true;}
+var TAB=(()=>{try{return localStorage.getItem("ff_tab")||"form"}catch(e){return "form"}})();
+function showTab(t){TAB=t;try{localStorage.setItem("ff_tab",t)}catch(e){}
+  document.querySelectorAll("section[data-tab]").forEach(s=>s.hidden=s.dataset.tab!==t);
+  document.querySelectorAll("#tabs button").forEach(b=>{const on=b.dataset.go===t;b.classList.toggle("on",on);b.setAttribute("aria-selected",on?"true":"false")});
+  if(t==="raw")renderRaw();if(t==="targets")renderTargets();if(t==="meds")renderMedList();if(t==="saved")renderSavedList();if(t==="prices")buildPriceList();
+  window.scrollTo({top:0})}
+document.querySelectorAll("#tabs button").forEach(b=>b.addEventListener("click",()=>showTab(b.dataset.go)));
+showTab(TAB);buildIng();calc();
+$("#lcBtn").addEventListener("click",leastCost);
+{const hb=$("#hideBtn");const paint=()=>{hb.textContent=HIDE?"Show all rows":"Hide unticked rows";hb.setAttribute("aria-pressed",HIDE?"true":"false")};paint();
+ hb.addEventListener("click",()=>{HIDE=!HIDE;try{localStorage.setItem("ff_hide",HIDE?"1":"0")}catch(e){}paint();buildIng();calc()});}
+{const tog=(btn,el,key,on,off)=>{let h=false;try{h=localStorage.getItem(key)==="1"}catch(e){}const paint=()=>{$(el).hidden=h;$(btn).textContent=h?on:off;$(btn).setAttribute("aria-pressed",h?"true":"false")};paint();
+  $(btn).addEventListener("click",()=>{h=!h;try{localStorage.setItem(key,h?"1":"0")}catch(e){}paint();if(!h)$(el).scrollIntoView({behavior:"smooth",block:"start"})});return ()=>{h=false;try{localStorage.setItem(key,"0")}catch(e){}paint()}};
+ window.showProd=tog("#hideProdBtn","#prodLib","ff_hideprod","Show My products","Hide My products");
+ tog("#hideVitBtn",".vitbox","ff_hidevit","Show vitamins & trace minerals","Hide vitamins & trace minerals");}
+$("#newMedBtn").addEventListener("click",()=>{showTab("meds");const d=$("#medBox");d.open=true;d.scrollIntoView({behavior:"smooth",block:"center"});setTimeout(()=>$("#mdName").focus(),300)});
+$("#medForm").addEventListener("submit",e=>{e.preventDefault();
+  const name=$("#mdName").value.trim(),dose=parseFloat($("#mdDose").value)||0;
+  if(!name||!dose){$("#mdMsg").textContent="Enter the medicine name and its dose in g per ton.";return}
+  const id="med_"+name.toLowerCase().replace(/[^a-z0-9]+/g,"_").slice(0,30);
+  const m={id,name,dose,note:$("#mdNote").value.trim(),st:[$("#mdChick").checked,$("#mdGrower").checked,$("#mdLayer").checked]};
+  MEDS=MEDS.filter(x=>x.id!==id);MEDS.push(m);saveMeds();
+  ING=ING.filter(i=>i.id!==id);ING.push(medToIng(m));medLimits(m);
+  const price=parseFloat($("#mdPrice").value)||0;if(price)PRICE[id]=price;
+  const allowed=m.st[LGROUP[STAGE]??2];const set=parseFloat($("#scaleTo").value)||1050;
+  if(allowed)KG[id]=Math.round(dose*set/1e6*1000)/1000;
+  USE[id]=true;try{localStorage.setItem("ff_use",JSON.stringify(USE))}catch(x){}
+  buildIng();buildVals();calc();
+  $("#mdMsg").textContent=allowed?`Added ${name}: ${fmt(KG[id],3)} kg in this ${fmt(set,0)} kg batch.`:`Added ${name}. Not allowed in this stage, so it was left at 0 kg.`;
+  ["#mdName","#mdDose","#mdPrice","#mdNote"].forEach(x=>$(x).value="");
+  if(typeof renderMedList==="function")renderMedList();
+});
+$("#lcUndo").addEventListener("click",()=>{LC_LOCK=false;if(LC_UNDO){KG={...LC_UNDO};LC_UNDO=null;buildIng();calc();$("#lcUndo").hidden=true;$("#lcMsg").textContent="Previous mix restored."}});
+$("#autoAdd").addEventListener("change",e=>{AUTO_ON=e.target.checked;try{localStorage.setItem("ff_auto",AUTO_ON?"1":"0")}catch(x){}if(!AUTO_ON)autoOff();calc()});
+$("#loadBtn").addEventListener("click",()=>{LC_LOCK=false;const v=$("#preset").value;if(v.startsWith("saved:")){loadSaved(+v.split(":")[1]);return}const p=PRESETS[v];KG={...p.kg};STAGE=p.stage;$("#stage").value=STAGE;buildIng();calc()});
+$("#clearBtn").addEventListener("click",()=>{KG={};buildIng();calc()});
+var LAST_SET=parseFloat($("#scaleTo").value)||1050;
+$("#scaleTo").addEventListener("change",()=>{const nw=parseFloat($("#scaleTo").value)||0;
+  if(MATCH_ON&&nw>0&&LAST_SET>0&&Math.abs(nw-LAST_SET)>0.001){const fct=nw/LAST_SET;Object.keys(KG).forEach(k=>{if(!AUTO_IDS.includes(k))KG[k]=Math.round(KG[k]*fct*100)/100});buildIng()}
+  if(nw>0)LAST_SET=nw;calc()});
+$("#scaleTo").addEventListener("input",()=>{if(!MATCH_ON)calc()});
+var PCATS={lc40:"Concentrate",premix:"Vitamin–mineral premix",tm:"Trace mineral premix",vitese:"Vitamin E + Selenium",vitc:"Vitamin C",emul:"Emulsifier",addit:"Other additive",enz:"Enzyme",vitd3:"Vitamin D3",phytase:"Phytase"};
+var PRODUCTS=store.get("ff_products")||null, SEL=store.get("ff_sel")||{};
+if(!PRODUCTS){PRODUCTS={premix:[],enz:[{name:"Polyzyme XAP",dose:400,d3:0,me:0,p:0,ca:0}],tm:[],vitd3:[],phytase:[]};SEL.enz=SEL.enz||"Polyzyme XAP";
+  try{const b=localStorage.getItem("ff_pmbrand");const pm=ING.find(i=>i.id==="premix");if(b&&pm&&pm.d3){PRODUCTS.premix.push({name:b,dose:0,d3:pm.d3,me:0,p:0,ca:0});SEL.premix=b}}catch(e){}}
+if(!store.get("ff_seed_rb")){const rb={name:"Rich Blend NDS 01 (Mega Care)",dose:500,d3:0,me:0,p:0,ca:0,price:450,vit:{vA:25,vD3:8,vE:16,vK3:4,vB1:2,vB2:12.5,vB6:3.2,vB12:32,vNia:24,vPan:16,vFol:2,vBio:100}};
+  PRODUCTS.premix=(PRODUCTS.premix||[]).filter(x=>x.name!==rb.name);PRODUCTS.premix.push(rb);store.set("ff_products",PRODUCTS);store.set("ff_seed_rb",1)}
+const saveProds=()=>{store.set("ff_products",PRODUCTS);store.set("ff_sel",SEL)};
+function applyProduct(cat,name,setKg){
+  const pr=(PRODUCTS[cat]||[]).find(x=>x.name===name), ing=ING.find(i=>i.id===cat); if(!pr||!ing)return;
+  const per=v=>pr.dose>0?v*1e6/pr.dose:0;
+  if(cat==="lc40"&&pr.nut){Object.assign(ing,pr.nut,{vit:null,min:null,d3:0});SEL[cat]=name;if(pr.price)PRICE[cat]=pr.price;if(setKg&&pr.dose>0){const set=parseFloat($("#scaleTo").value)||1000;const cap=(CONC_MAX[STAGE]||100)/100*set;KG[cat]=Math.round(Math.min(pr.dose*set/1e6,cap)*100)/100}saveProds();return}
+  Object.assign(ing,{vit:pr.vit?{...pr.vit}:null,min:pr.min?{...pr.min}:null,cp:0,cf:0,na:0,lys:0,met:0,k:0,d3:(cat==="premix"&&pr.vit)?(pr.vit.vD3||0)*1e6:(pr.d3||0),me:per(pr.me||0),avp:per(pr.p||0),ca:per(pr.ca||0)});
+  SEL[cat]=name;if(pr.price)PRICE[cat]=pr.price;
+  if(setKg&&pr.dose>0){const set=parseFloat($("#scaleTo").value)||1000;KG[cat]=Math.round(pr.dose*set/1e6*1000)/1000}
+  saveProds();
+}
+function prodSelect(i){
+  if(!PCATS||!PCATS[i.id])return "";
+  const list=(PRODUCTS[i.id]||[]).map(p=>`<option value="${esc(p.name)}"${SEL[i.id]===p.name?" selected":""}>${esc(p.name)}</option>`).join("");
+  return `<select class="prod" data-cat="${i.id}" id="sel_${i.id}" aria-label="${PCATS[i.id]} brand"><option value="">${list?"Choose brand…":"No brand saved"}</option>${list}<option value="__new">+ Add new brand…</option></select>`;
+}
+function esc(t){return String(t).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
+function renderProdList(){
+  const rows=[];
+  for(const [cat,label] of Object.entries(PCATS))for(const p of PRODUCTS[cat]||[]){
+    const bits=[p.nut?`${p.dose/1000} kg/t, CP ${p.nut.cp}%`+(p.has?` · contains ${[p.has.vit&&"vitamins",p.has.tm&&"trace minerals",p.has.binder&&"toxin binder"].filter(Boolean).join(", ")||"no premixes"}`:""):p.dose?`${p.dose} g/t`:"",p.min&&p.min.mZn?`Zn ${p.min.mZn} g, Mn ${p.min.mMn||0} g, Se ${p.min.mSe||0} mg`:"",p.min&&!p.min.mZn&&p.min.mSe?`E ${(p.vit&&p.vit.vE)||0} g, Se ${p.min.mSe} mg, biotin ${(p.vit&&p.vit.vBio)||0} mg per kg`:"",p.vit&&p.vit.vC?`Vitamin C ${p.vit.vC/10}%`:"",p.vit&&p.vit.vD3?`A ${p.vit.vA||0} MIU, D3 ${p.vit.vD3} MIU, E ${p.vit.vE||0} g`:"",p.d3?`D3 ${fmt(p.d3,0)} IU/kg`:"",p.price?`₹${p.price}/kg`:"",p.me?`+${p.me} kcal`:"",p.p?`+${p.p}% avP`:"",p.ca?`+${p.ca}% Ca`:""].filter(Boolean).join(" · ");
+    rows.push(`<div class="pitem"><div><b>${esc(p.name)}</b> <span class="hint">${label}${bits?" · "+bits:""}</span></div><button type="button" class="ghost sm" data-del="${cat}|${esc(p.name)}">Delete</button></div>`)}
+  $("#prodList").innerHTML=rows.join("")||`<p class="hint">No brands saved yet.</p>`;
+  $("#prodList").querySelectorAll("[data-del]").forEach(btn=>btn.addEventListener("click",()=>{
+    if(btn.dataset.armed!=="1"){btn.dataset.armed="1";btn.textContent="Tap again to delete";setTimeout(()=>{btn.dataset.armed="";btn.textContent="Delete"},3000);return}
+    const [cat,name]=btn.dataset.del.split("|");const nm=name.replace(/&amp;/g,"&").replace(/&lt;/g,"<").replace(/&gt;/g,">").replace(/&quot;/g,'"');
+    PRODUCTS[cat]=PRODUCTS[cat].filter(x=>x.name!==nm);if(SEL[cat]===nm)delete SEL[cat];saveProds();renderProdList();buildIng();calc()}));
+}
+function showFormFields(){const c=$("#pfCat").value;document.querySelectorAll("#prodForm [data-show]").forEach(l=>l.hidden=!l.dataset.show.split(" ").includes(c))}
+$("#pfCat").innerHTML=Object.entries(PCATS).map(([k,v])=>`<option value="${k}">${v}</option>`).join("");
+$("#pfCat").addEventListener("change",showFormFields);showFormFields();
+$("#prodForm").addEventListener("submit",e=>{e.preventDefault();
+  const cat=$("#pfCat").value,name=$("#pfName").value.trim();if(!name){$("#pfMsg").textContent="Enter the brand name.";return}
+  const num=id=>parseFloat($(id).value)||0;
+  const p={name,dose:num("#pfDose"),d3:num("#pfD3"),me:num("#pfMe"),p:num("#pfP"),ca:num("#pfCa"),price:num("#pfPrice")};
+  if(cat==="lc40"){p.dose=num("#pk_rate")*1000;p.nut={};["cp", "me", "cf", "ca", "avp", "na", "k", "cl", "lys", "met", "tsaa", "thr", "sand"].forEach(k=>p.nut[k]=num("#pk_"+k));p.has={vit:$("#pk_hasVit").checked,tm:$("#pk_hasTm").checked,binder:$("#pk_hasBinder").checked}}
+  if(cat==="tm"){p.min={};["mZn", "mFe", "mCu", "mSe", "mMn", "mCr", "mI"].forEach(k=>p.min[k]=num("#pm_"+k))}
+  if(cat==="vitese"){p.vit={vE:num("#pe_vE"),vBio:num("#pe_vBio")};p.min={mSe:num("#pe_mSe")}}
+  if(cat==="vitc"){p.vit={vC:num("#pc_C")*10}}
+  if(cat==="premix"){p.vit={};["vA", "vD3", "vE", "vK3", "vB1", "vB2", "vB6", "vB12", "vNia", "vPan", "vFol", "vBio"].forEach(k=>p.vit[k]=num("#pv_"+k))}
+  if((p.me||p.p||p.ca)&&!p.dose){$("#pfMsg").textContent="Enter the label dose (g per ton) so the ME, P and Ca values can be worked out.";return}
+  PRODUCTS[cat]=(PRODUCTS[cat]||[]).filter(x=>x.name!==name);PRODUCTS[cat].push(p);
+  applyProduct(cat,name,!(KG[cat]>0));saveProds();renderProdList();buildIng();buildVals();calc();
+  $("#pfMsg").textContent=`Saved ${name} as ${PCATS[cat]} and selected it in the table.`;
+  ["#pfName","#pfDose","#pfD3","#pfMe","#pfP","#pfCa","#pfPrice","#pv_vA","#pv_vD3","#pv_vE","#pv_vK3","#pv_vB1","#pv_vB2","#pv_vB6","#pv_vB12","#pv_vNia","#pv_vPan","#pv_vFol","#pv_vBio","#pm_mZn","#pm_mFe","#pm_mCu","#pm_mSe","#pm_mMn","#pm_mCr","#pm_mI","#pe_vE","#pe_mSe","#pe_vBio","#pc_C","#pk_cp","#pk_me","#pk_cf","#pk_ca","#pk_avp","#pk_na","#pk_k","#pk_cl","#pk_lys","#pk_met","#pk_tsaa","#pk_thr","#pk_sand","#pk_rate"].forEach(id=>$(id).value="");
+});
+renderProdList();buildIng();calc();
+
+var VITS=[
+ {k:"vA",n:"Vitamin A",lu:"MIU",fu:"IU",f:1e6,y:8000,l:8000,max:30000,low:"Poor growth, eye and breathing problems, low immunity, lower egg production.",high:"Bone problems; interferes with vitamins D3 and E."},
+ {k:"vD3",n:"Vitamin D3",lu:"MIU",fu:"IU",f:1e6,d3:true},
+ {k:"vE",n:"Vitamin E",lu:"g",fu:"mg",f:1000,y:25,l:20,low:"Crazy chick disease (brain damage), low immunity, poor fertility."},
+ {k:"vK3",n:"Vitamin K3",lu:"g",fu:"mg",f:1000,y:2,l:2,low:"Poor blood clotting, bleeding, blood spots in eggs."},
+ {k:"vB1",n:"Vitamin B1",lu:"g",fu:"mg",f:1000,y:2,l:2,low:"Loss of appetite, star-gazing (head drawn back)."},
+ {k:"vB2",n:"Vitamin B2",lu:"g",fu:"mg",f:1000,y:5,l:5,low:"Curled-toe paralysis in chicks, lower egg production and hatchability."},
+ {k:"vB6",n:"Vitamin B6",lu:"g",fu:"mg",f:1000,y:3,l:3,low:"Poor growth, nervous signs, lower egg production."},
+ {k:"vB12",n:"Vitamin B12",lu:"mg",fu:"mcg",f:1000,y:15,l:15,low:"Poor growth, small eggs, lower hatchability."},
+ {k:"vNia",n:"Niacin",lu:"g",fu:"mg",f:1000,y:30,l:25,low:"Enlarged hocks, poor feathering, mouth inflammation."},
+ {k:"vPan",n:"Pantothenic acid (Ca D-pantothenate)",lu:"g",fu:"mg",f:1000,y:10,l:8,low:"Scabs at beak corners and on feet, poor feathering."},
+ {k:"vFol",n:"Folic acid",lu:"g",fu:"mg",f:1000,y:1,l:0.7,low:"Anaemia, poor feathering, lower production."},
+ {k:"vBio",n:"Biotin",lu:"mg",fu:"mcg",f:1000,y:100,l:75,low:"Cracked feet and foot-pad sores; fatty liver and kidney syndrome."},
+ {k:"vC",n:"Vitamin C",lu:"g",fu:"mg",f:1000,y:0,l:0,note:"Birds make their own; 100–200 mg in heat or stress"}];
+var LASTV=[],LASTM=[];
+function cardRow(name,val,unit,lo,hi,st,eff,fix,dg,tgtText){
+  const top=hi||Math.max(lo*2,val*1.2,1),bot=0,span=top-bot||1;
+  const pos=x=>Math.min(100,Math.max(0,(x-bot)/(span*1.15)*100));
+  const zl=pos(lo),zw=pos(hi||top*1.15)-zl;
+  return `<div class="row${st!=="ok"?" bad":""}">
+    <div class="lbl">${name}<span class="chip ${st}">${st.toUpperCase()}</span></div>
+    <div class="val">${fmt(val,dg)} ${unit}</div>
+    <div class="band">${tgtText}</div><div></div>
+    <div class="bar" aria-hidden="true"><span class="zone" style="left:${zl}%;width:${zw}%"></span><span class="mark" style="left:calc(${pos(val)}% - 1px)"></span></div>
+    ${st!=="ok"?`<div class="effect"><b>Ill effect:</b> ${eff}</div><div class="tip"><b>Fix:</b> ${fix}</div>`:""}
+  </div>`;
+}
+function renderVits(tot){
+  if(!VITS||!$("#vitRows"))return {ok:0,n:0};
+  {const CI=concInfo();if(CI&&CI.has.vit){const r=coverCard("Vitamins",CI,"premix",500,"#vitRows","Vitamins short: poor growth, weak legs, lower production.","Use the concentrate at "+CI.rate+" kg per ton, or raise the vitamin premix to cover the rest.");LASTV=[["Vitamins","concentrate + premix "+Math.round(r.cov*100)+"%","95%+",r.ok?"OK":"LOW"]];return {ok:r.ok?1:0,n:1}}}
+  const young=(LGROUP[STAGE]??2)<2;let ok=0,n=0;LASTV=[];
+  $("#vitRows").innerHTML=VITS.filter(v=>!v.d3).map(v=>{
+    const val=tot?ING.reduce((a,i)=>a+(KG[i.id]||0)*((i.vit&&i.vit[v.k])||0)*v.f,0)/tot:0;
+    const lo=young?v.y:v.l,hi=v.max||null;
+    const st=val<lo*0.98?"low":(hi&&val>hi*1.02?"high":"ok");n++;if(st==="ok")ok++;
+    const eff=st==="low"?v.low:st==="high"?v.high:"";
+    const fix=st==="low"?"Check the premix brand and dose; raise premix kg or add a separate product for this vitamin.":"Reduce premix kg, or check the same vitamin is not coming from two products.";
+    const dg=val>=100?0:val>=10?1:2;
+    const tgt=v.note?v.note:`Target ${fmt(lo,lo>=100?0:1)}${hi?"–"+fmt(hi,0):"+"} ${v.fu}`;
+    LASTV.push([v.n,fmt(val,dg)+" "+v.fu,v.note?"—":`${fmt(lo,lo>=100?0:1)}${hi?" – "+fmt(hi,0):"+"} ${v.fu}`,st.toUpperCase()]);
+    return cardRow(v.n,val,v.fu,lo,hi,st,eff,fix,dg,tgt)}).join("");
+  return {ok,n};
+}
+
+var MINS=[
+ {k:"mZn",n:"Zinc",lu:"g",f:1000,y:30,l:30,max:120,low:"Poor feathering, slow growth, short thick leg bones; weak shells in layers.",high:"Reduced feed intake; exceeds legal limit."},
+ {k:"mMn",n:"Manganese",lu:"g",f:1000,y:40,l:30,max:150,low:"Perosis (slipped tendon), leg problems; thin shells in layers.",high:"Wasted; very high levels lower growth."},
+ {k:"mFe",n:"Iron",lu:"g",f:1000,y:40,l:30,max:450,low:"Anaemia, poor growth (maize, soya and DCP also supply iron).",high:"Ties up phosphorus; reduced growth."},
+ {k:"mCu",n:"Copper",lu:"g",f:1000,y:5,l:5,max:25,low:"Anaemia, weak blood vessels (aortic rupture), poor feathering.",high:"Toxic: liver damage, gizzard erosion, poor growth."},
+ {k:"mI",n:"Iodine",lu:"g",f:1000,y:0.35,l:0.35,max:5,low:"Goitre (enlarged thyroid), poor growth and egg production.",high:"Lower egg production and hatchability."},
+ {k:"mSe",n:"Selenium",lu:"mg",f:1,y:0.15,l:0.15,max:0.5,low:"Exudative diathesis, muscle damage, low immunity (works with vitamin E).",high:"Toxic: poor growth, feather loss, poor hatchability. Total Se must stay at or below 0.5 mg/kg."},
+ {k:"mCr",n:"Chromium",lu:"mg",f:1,y:0,l:0,max:3,low:"",high:"Above useful level; money wasted."}];
+function renderMins(tot){
+  if(!MINS||!$("#minRows"))return {ok:0,n:0};
+  {const CI=concInfo();if(CI&&CI.has.tm){const r=coverCard("Trace minerals",CI,"tm",500,"#minRows","Trace minerals short: leg problems, poor feathering, weak shells.","Use the concentrate at "+CI.rate+" kg per ton, or raise the trace mineral premix to cover the rest.");LASTM=[["Trace minerals","concentrate + premix "+Math.round(r.cov*100)+"%","95%+",r.ok?"OK":"LOW"]];return {ok:r.ok?1:0,n:1}}}
+  const young=(LGROUP[STAGE]??2)<2;let ok=0,n=0;LASTM=[];
+  $("#minRows").innerHTML=MINS.map(m=>{
+    const val=tot?ING.reduce((a,i)=>a+(KG[i.id]||0)*((i.min&&i.min[m.k])||0)*m.f,0)/tot:0;
+    const lo=young?m.y:m.l,hi=m.max;
+    const st=val<lo*0.98?"low":(val>hi*1.02?"high":"ok");n++;if(st==="ok")ok++;
+    const eff=st==="low"?m.low:st==="high"?m.high:"";
+    const fix=st==="low"?"Raise the trace mineral premix towards its label maximum, or check the brand values.":(m.k==="mSe"?"Reduce Vitamin E + Se product or trace mineral premix; total Se must stay at or below 0.5 mg/kg.":"Reduce trace mineral premix kg.");
+    const dg=val>=10?1:val>=1?2:3;
+    const tgt=`${lo?"Target "+fmt(lo,lo<1?2:0)+"–":"Up to "}${fmt(hi,hi<1?1:0)} mg/kg`;
+    LASTM.push([m.n,fmt(val,dg)+" mg",`${lo?fmt(lo,lo<1?2:0)+" – ":"up to "}${fmt(hi,hi<1?1:0)} mg`,st.toUpperCase()]);
+    return cardRow(m.n,val,"mg/kg",lo,hi,st,eff,fix,dg,tgt)}).join("");
+  return {ok,n};
+}
+if(!store.get("ff_seed_om")){const om={name:"Organomin forte",dose:500,d3:0,me:0,p:0,ca:0,min:{mZn:60,mFe:30,mCu:10,mSe:600,mMn:60,mCr:1000,mI:4}};
+  PRODUCTS.tm=(PRODUCTS.tm||[]).filter(x=>x.name!==om.name);PRODUCTS.tm.push(om);if(!SEL.tm)applyProduct("tm",om.name,true);saveProds();store.set("ff_seed_om",1);renderProdList();buildIng();buildVals();calc();}
+if(!store.get("ff_seed_zag")){
+  const zb={name:"Zagromix BEST WS (Zagro)",dose:0,d3:0,me:0,p:0,ca:0,vit:{vE:200,vBio:400},min:{mSe:200}};
+  const zc={name:"Zagrovit C-35 (Zagro)",dose:0,d3:0,me:0,p:0,ca:0,vit:{vC:350}};
+  PRODUCTS.vitese=(PRODUCTS.vitese||[]).filter(x=>x.name!==zb.name);PRODUCTS.vitese.push(zb);
+  PRODUCTS.vitc=(PRODUCTS.vitc||[]).filter(x=>x.name!==zc.name);PRODUCTS.vitc.push(zc);
+  if(!SEL.vitese)applyProduct("vitese",zb.name,false);if(!SEL.vitc)applyProduct("vitc",zc.name,false);
+  saveProds();store.set("ff_seed_zag",1);renderProdList();buildIng();buildVals();calc();}
+if(!store.get("ff_seed_emul")){
+  const ly={name:"Lysoforte Extend Dry (Kemin)",dose:500,d3:0,me:0,p:0,ca:0};
+  const bk={name:"Excential Beta-Key (Orffa)",dose:0,d3:0,me:0,p:0,ca:0};
+  PRODUCTS.emul=(PRODUCTS.emul||[]).filter(x=>x.name!==ly.name);PRODUCTS.emul.push(ly);
+  PRODUCTS.addit=(PRODUCTS.addit||[]).filter(x=>x.name!==bk.name);PRODUCTS.addit.push(bk);
+  if(!SEL.emul)applyProduct("emul",ly.name,true);if(!SEL.addit)applyProduct("addit",bk.name,false);
+  saveProds();store.set("ff_seed_emul",1);renderProdList();buildIng();buildVals();calc();}
+(PRODUCTS.lc40||[]).forEach(pr=>{if(pr.nut&&pr.nut.sand===undefined&&/LC40/.test(pr.name))pr.nut.sand=2.91});
+{const ing=ING.find(i=>i.id==="lc40");if(ing&&ing.sand===undefined)ing.sand=2.91}
+if(!store.get("ff_seed_conc")){
+  const lc={name:"Anbu Godrej LC40 (lab 04/07/25)",dose:400000,price:0,nut:{cp:28.8,me:2000,cf:9.94,ca:3.06,avp:0.7,na:0.307,k:1.0,cl:0.5,lys:1.2,met:0.5,tsaa:0.9,thr:1.0,sand:2.91},has:{vit:true,tm:true,binder:true}};
+  PRODUCTS.lc40=(PRODUCTS.lc40||[]).filter(x=>x.name!==lc.name);PRODUCTS.lc40.push(lc);
+  saveProds();store.set("ff_seed_conc",1);renderProdList();buildIng();}
+if(!store.get("ff_rb_sel")){if(!SEL.premix)applyProduct("premix","Rich Blend NDS 01 (Mega Care)",true);store.set("ff_rb_sel",1);buildIng();buildVals();}
+calc();
+
+$("#scaleBtn").addEventListener("click",()=>{const tot=ING.reduce((s,i)=>s+(KG[i.id]||0),0),to=parseFloat($("#scaleTo").value);if(!tot||!to)return;const f=to/tot;Object.keys(KG).forEach(k=>KG[k]=Math.round(KG[k]*f*100)/100);buildIng();calc()});
+$("#resetVals").addEventListener("click",()=>{ING=JSON.parse(JSON.stringify(DEFAULT_ING));buildIng();buildVals();calc()});
+$("#showAll").addEventListener("change",e=>{SHOWALL=e.target.checked;buildIng();buildVals();calc()});
+
+
+
+$("#pdfBtn").addEventListener("click",()=>{
+  const name=($("#pdfName").value||"Feed formula").trim();
+  $("#printHead").textContent=name+" · "+STAGES[STAGE].n+" · "+new Date().toLocaleDateString("en-IN");
+  const old=document.title;document.title=name;window.print();setTimeout(()=>document.title=old,500);
+});
+</script>
+
+<script>if("serviceWorker" in navigator&&location.protocol.startsWith("http")){addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}))}
+// open a tab from the app shortcut (#raw etc.)
+const goHash=()=>{const h=(location.hash||"").slice(1);if(h&&document.querySelector('#tabs button[data-go="'+h+'"]')&&typeof showTab==="function")showTab(h)};addEventListener("load",goHash);addEventListener("hashchange",goHash);</script>
+</body></html>
