@@ -168,6 +168,7 @@ input.needprice{border:2px solid var(--high)!important;background:var(--high-bg)
 </style>
 
 </head><body>
+<div id="errBar" role="alert" style="display:none;position:fixed;left:0;right:0;top:0;z-index:99;background:#9a2b4a;color:#fff;padding:10px 14px;font-size:.9rem"></div>
 <div class="wrap">
 <div id="printHead"></div>
 <header>
@@ -459,9 +460,8 @@ input.needprice{border:2px solid var(--high)!important;background:var(--high-bg)
 <footer>Your formula is saved on this computer automatically. Use Print / Save as PDF to keep a copy (choose "Microsoft Print to PDF" or "Save as PDF"). Default nutrient values follow the Skylark ingredient table; your own lab analysis is always better.</footer>
 </div>
 
-<div id="errBar" role="alert" style="display:none;position:sticky;top:0;z-index:99;background:#9a2b4a;color:#fff;padding:10px 14px;font-size:.9rem"></div>
 <script>
-window.addEventListener("error",e=>{const b=document.getElementById("errBar");if(!b)return;b.style.display="block";b.textContent="Program error: "+(e.message||"unknown")+" (line "+(e.lineno||"?")+"). Please send a photo of this bar."});
+window.addEventListener("error",e=>{const b=document.getElementById("errBar");if(!b)return;b.style.display="block";b.textContent="Program error: "+(e.message||"unknown")+" (line "+(e.lineno||"?")+", col "+(e.colno||"?")+"). Please send a photo of this bar."});
 document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest("#tabs button[data-go]");if(!b)return;const t=b.dataset.go;
   try{if(typeof showTab==="function"){showTab(t);return}}catch(x){}
   document.querySelectorAll("section[data-tab]").forEach(s=>s.hidden=s.dataset.tab!==t);
