@@ -459,6 +459,14 @@ input.needprice{border:2px solid var(--high)!important;background:var(--high-bg)
 <footer>Your formula is saved on this computer automatically. Use Print / Save as PDF to keep a copy (choose "Microsoft Print to PDF" or "Save as PDF"). Default nutrient values follow the Skylark ingredient table; your own lab analysis is always better.</footer>
 </div>
 
+<div id="errBar" role="alert" style="display:none;position:sticky;top:0;z-index:99;background:#9a2b4a;color:#fff;padding:10px 14px;font-size:.9rem"></div>
+<script>
+window.addEventListener("error",e=>{const b=document.getElementById("errBar");if(!b)return;b.style.display="block";b.textContent="Program error: "+(e.message||"unknown")+" (line "+(e.lineno||"?")+"). Please send a photo of this bar."});
+document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest("#tabs button[data-go]");if(!b)return;const t=b.dataset.go;
+  try{if(typeof showTab==="function"){showTab(t);return}}catch(x){}
+  document.querySelectorAll("section[data-tab]").forEach(s=>s.hidden=s.dataset.tab!==t);
+  document.querySelectorAll("#tabs button").forEach(x=>x.classList.toggle("on",x.dataset.go===t));window.scrollTo({top:0})});
+</script>
 <script>
 const NUTS=[
  {k:"cp",n:"Crude protein",u:"%",d:2},{k:"me",n:"ME",u:" kcal/kg",d:0},{k:"cf",n:"Crude fibre",u:"%",d:2},
@@ -1043,9 +1051,8 @@ var TAB=(()=>{try{return localStorage.getItem("ff_tab")||"form"}catch(e){return 
 function showTab(t){TAB=t;try{localStorage.setItem("ff_tab",t)}catch(e){}
   document.querySelectorAll("section[data-tab]").forEach(s=>s.hidden=s.dataset.tab!==t);
   document.querySelectorAll("#tabs button").forEach(b=>{const on=b.dataset.go===t;b.classList.toggle("on",on);b.setAttribute("aria-selected",on?"true":"false")});
-  if(t==="raw")renderRaw();if(t==="targets")renderTargets();if(t==="meds")renderMedList();if(t==="saved")renderSavedList();if(t==="prices")buildPriceList();
+  try{if(t==="raw")renderRaw();if(t==="targets")renderTargets();if(t==="meds")renderMedList();if(t==="saved")renderSavedList();if(t==="prices")buildPriceList();}catch(e){const b=document.getElementById("errBar");if(b){b.style.display="block";b.textContent="Program error on this page: "+e.message+". Please send a photo of this bar."}}
   window.scrollTo({top:0})}
-document.querySelectorAll("#tabs button").forEach(b=>b.addEventListener("click",()=>showTab(b.dataset.go)));
 showTab(TAB);buildIng();calc();
 $("#lcBtn").addEventListener("click",leastCost);
 try{lcStatus()}catch(e){}
