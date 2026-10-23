@@ -141,6 +141,10 @@ input.askkg{outline:3px solid var(--maize)!important}
 .mtable td,.mtable th{padding:4px 5px;text-align:center}
 .mtable td.name,.mtable th:first-child{text-align:left;position:sticky;left:0;background:var(--surface);z-index:1;min-width:150px}
 input.badin{outline:2px solid var(--high)}
+input.needprice{border:2px solid var(--high)!important;background:var(--high-bg)!important}
+#lcBtn.blocked{background:var(--high);border-color:var(--high)}
+.lcneed{font-size:.88rem;color:var(--high);font-weight:600}
+.lcneed:empty{display:none}
 .wtalert{font-size:.92rem;border-radius:8px;padding:10px 12px}
 .wtalert:empty{display:none}
 .wtalert.ok{background:var(--ok-bg);color:var(--ok);font-weight:600}
@@ -356,6 +360,7 @@ input.badin{outline:2px solid var(--high)}
     <button id="hideVitBtn" class="ghost" type="button">Hide vitamins & trace minerals</button>
     <button id="lcBtn" type="button">Find least-cost mix</button>
     <button id="lcUndo" class="ghost" type="button" hidden>Undo least-cost</button>
+    <span id="lcNeed" class="lcneed" aria-live="polite"></span>
     <label class="f" style="flex-direction:row;align-items:center;gap:6px;font-size:.9rem"><input type="checkbox" id="matchOn"> Match set batch weight automatically by adjusting
       <select id="fillerSel" aria-label="Ingredient used to match batch weight"></select></label>
     <label class="f" style="flex-direction:row;align-items:center;gap:6px;font-size:.9rem"><input type="checkbox" id="autoAdd"> Add vitamins, minerals and additives automatically</label>
@@ -801,9 +806,18 @@ function buildLP(skipK,onlyK){
   {const j=vars.findIndex(i=>i.id==="lc40");const mn=CONC_MIN[STAGE];if(j>=0&&mn){const r=vars.map((_,q)=>q===j?1:0);A.push(r);b.push(mn/100*T*0.998);ty.push("ge");labels.push("min:lc40")}}
   return {vars,A,b,ty,c:vars.map(i=>PRICE[i.id])};
 }
+function lcNeedPrice(){const g=LGROUP[STAGE]??2;return ING.filter(i=>isUsed(i)&&!i.med&&!LC_FIXED.includes(i.id)&&!(PRICE[i.id]>0)&&!(i.lib&&!(KG[i.id]>0)&&USE[i.id]!==true)&&!(LIMITS[i.id]&&LIMITS[i.id][g]===0))}
+function lcStatus(){const need=lcNeedPrice(),ids=need.map(i=>i.id);
+  document.querySelectorAll("#ingTable input[data-pid]").forEach(el=>el.classList.toggle("needprice",ids.includes(el.dataset.pid)));
+  const b=$("#lcBtn"),sp=$("#lcNeed");if(!b)return;
+  if(need.length){b.textContent="Least-cost locked: "+need.length+" price"+(need.length>1?"s":"")+" missing";b.classList.add("blocked");if(sp)sp.textContent="Enter ₹/kg for: "+need.map(i=>i.n).join(", ")+" (or untick them)"}
+  else{b.textContent="Find least-cost mix";b.classList.remove("blocked");if(sp)sp.textContent=""}}
 function leastCost(){
   const box=$("#lcMsg");
   const msg=(t,ok)=>{box.innerHTML=t;box.className="wtalert "+(ok?"ok":"bad");box.scrollIntoView({behavior:"smooth",block:"center"})};
+  {const need=lcNeedPrice();if(need.length){lcStatus();
+    msg(`<b>⚠ Price missing – least-cost not run.</b><br>Enter ₹/kg in the price box (red) for: <b>${need.map(i=>i.n).join(", ")}</b>.<br>Or untick the materials you don't have. Least-cost will run once every ticked material has a price.`,false);
+    const el=$("#pr_"+need[0].id);if(el)setTimeout(()=>{el.scrollIntoView({behavior:"smooth",block:"center"});el.focus()},400);return}}
   const unpriced=ING.filter(i=>isUsed(i)&&!i.med&&!LC_FIXED.includes(i.id)&&!(PRICE[i.id]>0)&&!(i.lib&&!(KG[i.id]>0)&&USE[i.id]!==true)).map(i=>i.n);
   const upTxt=(unpriced.length?`<br>Ticked but no ₹/kg price (not used): ${unpriced.join(", ")}. Enter them once in the ₹ Price list (saved for next time).`:"")+(()=>{const g=LGROUP[STAGE]??2;const off=ING.filter(i=>!isUsed(i)&&PRICE[i.id]>0&&!i.med&&!LC_FIXED.includes(i.id)&&!(LIMITS[i.id]&&LIMITS[i.id][g]===0)).map(i=>i.n);return off.length?`<br>Priced but <b>not ticked</b> (not used): ${off.join(", ")}. Tick them if you have them.`:""})();
   const LC_PREV={...KG};
@@ -852,7 +866,7 @@ function calc(){
    else if(MATCH_ON&&i.id===FILLER){t="Auto: adjusted to match batch weight";cls="okc"}
    else if(auto&&(i.id==="premix"||i.id==="tm")&&(PREMIX_BOOST[STAGE]||1)>1){t="Auto-added: label dose +25% for "+STAGES[STAGE].n;cls="okc"}
    else if(auto){t=BAL_IDS.includes(i.id)?"Auto top-up (only the shortfall)":"Auto-added";cls="okc"}
-   else if(!(PRICE[i.id]>0)&&!LC_FIXED.includes(i.id)&&!i.med){t="No price: least-cost cannot change it";cls="warn2"}
+   else if(!(PRICE[i.id]>0)&&!LC_FIXED.includes(i.id)&&!i.med){t="Price needed: enter ₹/kg to run least-cost";cls="bad2"}
    else if(!(PRICE[i.id]>0)){t="No price: not in cost";cls="mute"}
    else{t="OK";cls="okc"}
    wy.textContent=t;wy.className="why "+cls}}
@@ -884,6 +898,7 @@ function calc(){
   const perKg=costKnown&&tot?cost/tot:null;const unpricedN=ING.filter(i=>(KG[i.id]||0)>0&&!(PRICE[i.id]>0)).length;
   const VR=renderVits(tot)||{ok:0,n:0},MR=renderMins(tot)||{ok:0,n:0};$("#summary").innerHTML=`<span>Batch <b>${fmt(tot,1)} kg</b></span><span>On target <b>${okCount+VR.ok+MR.ok}/${NUTS.length+VR.n+MR.n}</b></span>${perKg?`<span>Cost <b>₹${fmt(perKg,2)}/kg</b>${unpricedN?` <span style="color:var(--low)">(partial: ${unpricedN} item${unpricedN>1?"s":""} without price)</span>`:""}</span>`:`<span>Enter ₹/kg to see cost</span>`}`;
   store.set("ff_kg",KG);store.set("ff_price",PRICE);store.set("ff_ing",ING);store.set("ff_stage",STAGE);
+  try{lcStatus()}catch(e){}
 }
 buildSelects();buildIng();buildVals();calc();
 $("#stage").addEventListener("change",e=>{STAGE=e.target.value;LC_LOCK=false;calc()});
@@ -1033,6 +1048,7 @@ function showTab(t){TAB=t;try{localStorage.setItem("ff_tab",t)}catch(e){}
 document.querySelectorAll("#tabs button").forEach(b=>b.addEventListener("click",()=>showTab(b.dataset.go)));
 showTab(TAB);buildIng();calc();
 $("#lcBtn").addEventListener("click",leastCost);
+try{lcStatus()}catch(e){}
 {const hb=$("#hideBtn");const paint=()=>{hb.textContent=HIDE?"Show all rows":"Hide unticked rows";hb.setAttribute("aria-pressed",HIDE?"true":"false")};paint();
  hb.addEventListener("click",()=>{HIDE=!HIDE;try{localStorage.setItem("ff_hide",HIDE?"1":"0")}catch(e){}paint();buildIng();calc()});}
 {const tog=(btn,el,key,on,off)=>{let h=false;try{h=localStorage.getItem(key)==="1"}catch(e){}const paint=()=>{$(el).hidden=h;$(btn).textContent=h?on:off;$(btn).setAttribute("aria-pressed",h?"true":"false")};paint();
