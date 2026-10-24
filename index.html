@@ -362,6 +362,7 @@ input.needprice{border:2px solid var(--high)!important;background:var(--high-bg)
     <button id="lcBtn" type="button">Find least-cost mix</button>
     <button id="lcUndo" class="ghost" type="button" hidden>Undo least-cost</button>
     <span id="lcNeed" class="lcneed" aria-live="polite"></span>
+    <label class="f" style="flex-direction:row;align-items:center;gap:6px;font-size:.9rem"><input type="checkbox" id="roundOn"> Round kg: 10 kg and above to whole kg (.5 and up goes to next kg), below 10 kg (medicines, additives, minerals) to 1 decimal</label>
     <label class="f" style="flex-direction:row;align-items:center;gap:6px;font-size:.9rem"><input type="checkbox" id="matchOn"> Match set batch weight automatically by adjusting
       <select id="fillerSel" aria-label="Ingredient used to match batch weight"></select></label>
     <label class="f" style="flex-direction:row;align-items:center;gap:6px;font-size:.9rem"><input type="checkbox" id="autoAdd"> Add vitamins, minerals and additives automatically</label>
@@ -731,12 +732,16 @@ function matchWeight(){
   if(!MATCH_ON||USE[FILLER]===false){if(el0&&el0.dataset.match){delete el0.dataset.match;el0.readOnly=false;el0.classList.remove("matchfill")}return}
   const set=parseFloat(($("#scaleTo")||{}).value)||0;if(!set)return;
   const others=ING.reduce((a,i)=>a+(i.id===FILLER?0:(KG[i.id]||0)),0);
-  const v=Math.round((set-others)*100)/100;
+  let v=Math.round((set-others)*100)/100;if(ROUND_ON&&v>0)v=rndKg(v);
   if(v>0)KG[FILLER]=v;else delete KG[FILLER];
   if(el0){el0.value=v>0?v:"";el0.readOnly=true;el0.dataset.match="1";el0.classList.add("matchfill");el0.title="Adjusted automatically so the batch equals the set weight"}
   MATCH_SHORT=v<0?-v:0;
 }
 var MATCH_SHORT=0;
+var ROUND_ON=(()=>{try{return localStorage.getItem("ff_round")!=="0"}catch(e){return true}})();
+function rndKg(v){return v>=10?Math.round(v):Math.max(0.1,Math.round(v*10)/10)}
+function roundKG(){if(!ROUND_ON)return;const a=document.activeElement,act=a&&a.dataset?a.dataset.id:null;
+  ING.forEach(i=>{const v=KG[i.id];if(v>0&&i.id!==act){const r=rndKg(v);if(r!==v){KG[i.id]=r;const e=document.getElementById("kg_"+i.id);if(e)e.value=r}}})}
 function autoAdd(){
   if(!AUTO_ON)return;
   const set=parseFloat(($("#scaleTo")||{}).value)||1050;
@@ -857,6 +862,7 @@ function leastCost(){
 function calc(){
   autoAdd();
   ING.forEach(i=>{if((USE[i.id]===false&&KG[i.id])||KG[i.id]<0)delete KG[i.id]});
+  roundKG();
   matchWeight();
   const tot=ING.reduce((s,i)=>s+(KG[i.id]||0),0);
   let cost=0,costKnown=false;
@@ -887,7 +893,7 @@ function calc(){
   $("#totKg").textContent=fmt(tot,2);
   {const set=parseFloat($("#scaleTo").value)||0,d=tot-set,el=$("#wtAlert");
    if(!tot||!set){el.className="wtalert";el.textContent=""}
-   else if(Math.abs(d)<0.05){el.className="wtalert ok";el.textContent=`OK – batch total ${fmt(tot,2)} kg matches the set weight.`}
+   else if(Math.abs(d)<(ROUND_ON?0.51:0.05)){el.className="wtalert ok";el.textContent=`OK – batch total ${fmt(tot,2)} kg matches the set weight`+(Math.abs(d)>=0.05?" (within kg rounding).":".")}
    else if(MATCH_ON&&MATCH_SHORT>0){el.className="wtalert bad";el.innerHTML=`<b>OVER by ${fmt(d,2)} kg</b>: the other materials already weigh more than ${fmt(set,0)} kg, so ${ING.find(i=>i.id===FILLER).n} cannot be reduced further. Reduce another material or raise the set weight.`}
    else{el.className="wtalert bad";el.innerHTML=d>0?`<b>OVER by ${fmt(d,2)} kg</b> (total ${fmt(tot,2)} kg vs set ${fmt(set,0)} kg). Reduce maize by ${fmt(d,2)} kg, or tap “Scale all to set weight”.`:`<b>UNDER by ${fmt(-d,2)} kg</b> (total ${fmt(tot,2)} kg vs set ${fmt(set,0)} kg). Add ${fmt(-d,2)} kg maize, or tap “Scale all to set weight”.`}}
   $("#totCost").textContent=costKnown?"₹"+fmt(cost,0):"—";
@@ -1060,6 +1066,8 @@ function showTab(t){TAB=t;try{localStorage.setItem("ff_tab",t)}catch(e){}
   window.scrollTo({top:0})}
 showTab(TAB);buildIng();calc();
 $("#lcBtn").addEventListener("click",leastCost);
+{const r=$("#roundOn");r.checked=ROUND_ON;r.addEventListener("change",()=>{ROUND_ON=r.checked;try{localStorage.setItem("ff_round",ROUND_ON?"1":"0")}catch(e){}LC_LOCK=false;calc()});}
+document.addEventListener("change",e=>{if(e.target&&e.target.matches&&e.target.matches("input[data-id]"))calc()});
 try{lcStatus()}catch(e){}
 {const hb=$("#hideBtn");const paint=()=>{hb.textContent=HIDE?"Show all rows":"Hide unticked rows";hb.setAttribute("aria-pressed",HIDE?"true":"false")};paint();
  hb.addEventListener("click",()=>{HIDE=!HIDE;try{localStorage.setItem("ff_hide",HIDE?"1":"0")}catch(e){}paint();buildIng();calc()});}
