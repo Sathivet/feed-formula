@@ -145,9 +145,15 @@ input.needprice{border:2px solid var(--high)!important;background:var(--high-bg)
 #lcBtn.blocked{background:var(--high);border-color:var(--high)}
 .lcneed{font-size:.88rem;color:var(--high);font-weight:600}
 .lcneed:empty{display:none}
+#millSheet{display:none}
+@media print{body.millprint>*:not(#millSheet){display:none!important}body.millprint #millSheet .hint{display:block!important}body.millprint #millSheet{display:block!important;font-family:Arial,sans-serif;color:#000}
+ #millSheet table{border-collapse:collapse;width:100%;margin:6px 0 12px}#millSheet th,#millSheet td{border:1px solid #444;padding:4px 6px;font-size:11pt;text-align:left}#millSheet td.n{text-align:right}#millSheet h1{font-size:15pt;margin:0 0 4px}#millSheet h2{font-size:12pt;margin:10px 0 2px}}
+.mtab{border-collapse:collapse;width:100%;font-size:.9rem;margin:6px 0 12px}.mtab th,.mtab td{border-bottom:1px solid var(--line,#ddd);padding:5px 8px;text-align:left}.mtab td.n{text-align:right;font-variant-numeric:tabular-nums}
+.up{color:var(--high)}.dn{color:var(--ok)}
 .wtalert{font-size:.92rem;border-radius:8px;padding:10px 12px}
 .wtalert:empty{display:none}
 .wtalert.ok{background:var(--ok-bg);color:var(--ok);font-weight:600}
+.wtalert.near{background:var(--low-bg);color:var(--low);border-left:4px solid var(--low)}
 .wtalert.bad{background:var(--high-bg);color:var(--high);border-left:4px solid var(--high)}
 .warn{font-size:.78rem;font-weight:600;color:var(--high);line-height:1.3;margin-top:2px}
 .warn:empty{display:none}
@@ -172,10 +178,11 @@ input.needprice{border:2px solid var(--high)!important;background:var(--high-bg)
 <div class="wrap">
 <div id="printHead"></div>
 <header>
-  <div class="eyebrow">Vetrivel Farm · feed formulation software</div>
+  <div class="eyebrow">Vetrivel Farm · feed formulation software · <span id="appVer"></span></div>
   <h1>Feed Formula</h1>
   <p>Masters hold your raw materials, products, medicines, stage targets and prices. Formulation uses them to build, check and cost each batch.</p>
 </header>
+<div id="bkBar" class="wtalert near" hidden style="margin:0 0 10px"><span id="bkText"></span> <button type="button" class="sm" id="bkNow">Export backup now</button> <button type="button" class="ghost sm" id="bkLater">Later</button></div>
 <nav class="tabs" id="tabs" role="tablist" aria-label="Sections">
   <button type="button" role="tab" data-go="form">Formulation</button>
   <button type="button" role="tab" data-go="raw">Raw material master</button>
@@ -362,7 +369,8 @@ input.needprice{border:2px solid var(--high)!important;background:var(--high-bg)
     <button id="lcBtn" type="button">Find least-cost mix</button>
     <button id="lcUndo" class="ghost" type="button" hidden>Undo least-cost</button>
     <span id="lcNeed" class="lcneed" aria-live="polite"></span>
-    <label class="f" style="flex-direction:row;align-items:center;gap:6px;font-size:.9rem"><input type="checkbox" id="roundOn"> Round kg: 10 kg and above to whole kg (.5 and up goes to next kg), below 10 kg (medicines, additives, minerals) to 1 decimal</label>
+    <label class="f" style="flex-direction:row;align-items:center;gap:6px;font-size:.9rem"><span style="display:inline-flex;align-items:center;gap:6px">Safety margin above minimums <input id="marginIn" class="num" type="number" min="0" max="5" step="0.5" style="width:70px"> %</span></label>
+    <label class="f" style="flex-direction:row;align-items:center;gap:6px;font-size:.9rem"><input type="checkbox" id="roundOn"> Round kg: 10 kg and above to whole kg (DCP, calcite, grit to 0.5 kg), below 10 kg (medicines, additives) to 1 decimal</label>
     <label class="f" style="flex-direction:row;align-items:center;gap:6px;font-size:.9rem"><input type="checkbox" id="matchOn"> Match set batch weight automatically by adjusting
       <select id="fillerSel" aria-label="Ingredient used to match batch weight"></select></label>
     <label class="f" style="flex-direction:row;align-items:center;gap:6px;font-size:.9rem"><input type="checkbox" id="autoAdd"> Add vitamins, minerals and additives automatically</label>
@@ -448,9 +456,20 @@ input.needprice{border:2px solid var(--high)!important;background:var(--high-bg)
   <button id="tgReset" class="ghost" type="button">Reset targets and options to defaults</button>
 </section>
 
+<section data-tab="form" id="millBox">
+  <h2>4. Mill batch sheet</h2>
+  <div class="controls">
+    <label class="f">Total feed to make (kg)<input id="millTotal" class="num" type="number" min="0" step="50" style="width:130px"></label>
+    <button id="millBtn" type="button">Print batch sheet</button>
+  </div>
+  <div id="millPrev"></div>
+</section>
+
 <section data-tab="prices" hidden>
   <h2>Prices</h2>
   <div id="priceHome"></div>
+  <h3 style="margin-top:18px">Price history (₹/kg)</h3>
+  <div id="phistBox"></div>
 </section>
 
 <section data-tab="saved" hidden>
@@ -611,7 +630,7 @@ vitd3:[0.05,0.05,0.05,"Too much D3: calcium deposits in kidneys, kidney damage."
 betaine:[0.2,0.2,0.2,"Wasted above 2 kg per ton."],
 emul:[0.1,0.1,0.1,"Wasted above label dose (500–1000 g per ton)."],
 phytase:[0.02,0.02,0.02,"Wasted above label dose. If the P credit is counted twice, birds go short of phosphorus."],
-liver:[0.05,0.05,0.05,"Wasted above label dose."]};
+liver:[0.07,0.07,0.05,"Wasted above label dose (+25% allowed in young stages)."]};
 const LGROUP={chick:0,grower:1,dev:1,plm:2,l1:2,l2:2};
 var PREMIX_BOOST={chick:1.25,grower:1.25,dev:1.25};
 var CONC_MAX={chick:10,grower:20,dev:20,plm:25,l1:25,l2:40};
@@ -706,7 +725,7 @@ function buildVals(){
 }
 
 var AUTO_ON=(()=>{try{return localStorage.getItem("ff_auto")!=="0"}catch(e){return true}})();
-var AUTO_IDS=["premix","tm","liver","binder","vitese","vitc","betaine","emul"];
+var AUTO_IDS=["premix","tm","liver","choline","binder","vitese","vitc","betaine","emul"];
 
 function concInfo(){
   if(!(KG.lc40>0))return null;
@@ -732,16 +751,17 @@ function matchWeight(){
   if(!MATCH_ON||USE[FILLER]===false){if(el0&&el0.dataset.match){delete el0.dataset.match;el0.readOnly=false;el0.classList.remove("matchfill")}return}
   const set=parseFloat(($("#scaleTo")||{}).value)||0;if(!set)return;
   const others=ING.reduce((a,i)=>a+(i.id===FILLER?0:(KG[i.id]||0)),0);
-  let v=Math.round((set-others)*100)/100;if(ROUND_ON&&v>0)v=rndKg(v);
+  let v=Math.round((set-others)*100)/100;if(ROUND_ON&&v>0)v=rndKg(v,FILLER);
   if(v>0)KG[FILLER]=v;else delete KG[FILLER];
   if(el0){el0.value=v>0?v:"";el0.readOnly=true;el0.dataset.match="1";el0.classList.add("matchfill");el0.title="Adjusted automatically so the batch equals the set weight"}
   MATCH_SHORT=v<0?-v:0;
 }
 var MATCH_SHORT=0;
 var ROUND_ON=(()=>{try{return localStorage.getItem("ff_round")!=="0"}catch(e){return true}})();
-function rndKg(v){return v>=10?Math.round(v):Math.max(0.1,Math.round(v*10)/10)}
+var HALF_KG=["dcp","calcite","grit"]; // minerals: 0.5 kg steps so Ca and P stay on target
+function rndKg(v,id){return v>=10?(HALF_KG.includes(id)?Math.round(v*2)/2:Math.round(v)):Math.max(0.1,Math.round(v*10)/10)}
 function roundKG(){if(!ROUND_ON)return;const a=document.activeElement,act=a&&a.dataset?a.dataset.id:null;
-  ING.forEach(i=>{const v=KG[i.id];if(v>0&&i.id!==act){const r=rndKg(v);if(r!==v){KG[i.id]=r;const e=document.getElementById("kg_"+i.id);if(e)e.value=r}}})}
+  ING.forEach(i=>{const v=KG[i.id];if(v>0&&i.id!==act){const r=rndKg(v,i.id);if(r!==v){KG[i.id]=r;const e=document.getElementById("kg_"+i.id);if(e)e.value=r}}})}
 function autoAdd(){
   if(!AUTO_ON)return;
   const set=parseFloat(($("#scaleTo")||{}).value)||1050;
@@ -750,7 +770,7 @@ function autoAdd(){
   const CI=concInfo(),cv=CI&&CI.full;
   const rest=has=>{if(!(CI&&has))return 1;const r=1-CI.frac;return r<0.1?0:r};
   const boost=PREMIX_BOOST[STAGE]||1;
-  const g={premix:pd("premix",500)*boost*rest(CI&&CI.has.vit),tm:pd("tm",500)*boost*rest(CI&&CI.has.tm),liver:500,binder:1000*rest(CI&&CI.has.binder),
+  const g={premix:pd("premix",500)*boost*rest(CI&&CI.has.vit),tm:pd("tm",500)*boost*rest(CI&&CI.has.tm),liver:500*boost*rest(!!CI),choline:500*boost*rest(!!CI),binder:1000*rest(CI&&CI.has.binder),
     vitese:young?pd("vitese",200):0,vitc:young?pd("vitc",150):0,betaine:young?1000:0,
     emul:(KG.oil||0)>0?pd("emul",500):0};
   for(const id of AUTO_IDS){if(USE[id]===false)g[id]=0;const kg=Math.round(g[id]*set/1e6*1000)/1000;if(kg>0)KG[id]=kg;else delete KG[id];
@@ -758,6 +778,7 @@ function autoAdd(){
   balanceTop(!!CI);
 }
 var BAL_IDS=["dcp","salt","lysHcl","dlmet"];
+var GRIT_STAGES=["plm","l1","l2"],GRIT_SHARE=0.6; // layer: coarse grit at least 60% of grit + calcite
 var LC_LOCK=false;
 function balanceTop(cv){
   if(LC_LOCK)cv=false;
@@ -814,15 +835,22 @@ function buildLP(skipK,onlyK){
   const A=[],b=[],ty=[],labels=[];
   A.push(vars.map(()=>1));b.push(T-fkg);ty.push("eq");labels.push("total");
   const debv=i=>10000*((i.na||0)/23+(i.k||0)/39.1-(i.cl||0)/35.45);
-  for(const n of NUTS){if(n.k==="d3"||n.k===skipK||(onlyK&&n.k!==onlyK))continue;if(n.k==="sand"&&CONC_MIN[STAGE]&&isUsed(ING.find(x=>x.id==="lc40")))continue;if(n.k==="deb"&&CONC_MIN[STAGE]&&isUsed(ING.find(x=>x.id==="lc40")))continue;const [lo0,hi0]=st[n.k];const lo=lo0*1.002,hi=hi0*0.998;
+  for(const n of NUTS){if(n.k==="d3"||n.k===skipK||(onlyK&&n.k!==onlyK))continue;if(n.k==="sand"&&CONC_MIN[STAGE]&&isUsed(ING.find(x=>x.id==="lc40")))continue;if(n.k==="deb"&&CONC_MIN[STAGE]&&isUsed(ING.find(x=>x.id==="lc40")))continue;const [lo0,hi0]=st[n.k];let lo=lo0*(1+Math.max(MARGIN,0.2)/100);const hi=hi0*0.998;if(lo0>0&&lo>hi)lo=Math.max(lo0*1.002,(lo0+hi0)/2);
     const coef=n.k==="deb"?vars.map(debv):vars.map(i=>i[n.k]||0);
     const f=n.k==="deb"?fixed.reduce((a,i)=>a+KG[i.id]*debv(i),0):fsum(n.k);
     A.push(coef);b.push(lo*T-f);ty.push("ge");labels.push(n.k);
     if(!["lys","tsaa","thr"].includes(n.k)){A.push(coef);b.push(hi*T-f);ty.push("le");labels.push(n.k)}}
   vars.forEach((i,j)=>{const L=LIMITS[i.id];const mx=i.id==="lc40"?CONC_MAX[STAGE]:(L?L[g]:null);if(mx!==null&&mx!==undefined){const r=vars.map((_,q)=>q===j?1:0);A.push(r);b.push(mx/100*T*0.998);ty.push("le");labels.push("max:"+i.id)}});
+  if(GRIT_STAGES.includes(STAGE)){const gi=vars.findIndex(i=>i.id==="grit"),ci=vars.findIndex(i=>i.id==="calcite");
+    if(gi>=0||ci>=0){const r=vars.map((_,q)=>q===gi?(1-GRIT_SHARE):q===ci?-GRIT_SHARE:0);const fx=(gi<0?(KG.grit||0)*(1-GRIT_SHARE):0)-(ci<0?(KG.calcite||0)*GRIT_SHARE:0);A.push(r);b.push(-fx);ty.push("ge");labels.push("min:grit")}}
   {const j=vars.findIndex(i=>i.id==="lc40");const mn=CONC_MIN[STAGE];if(j>=0&&mn){const r=vars.map((_,q)=>q===j?1:0);A.push(r);b.push(mn/100*T*0.998);ty.push("ge");labels.push("min:lc40")}}
-  return {vars,A,b,ty,c:vars.map(i=>PRICE[i.id])};
+  return {vars,A,b,ty,c:vars.map(i=>PRICE[i.id]),labels};
 }
+// nearest mix when 100% of targets is not possible: nutrient limits become soft with a heavy penalty per % missed
+function softLP(P){const soft=[];P.labels.forEach((l,i)=>{if(!/^(total|max:|min:|fix:)/.test(l))soft.push(i)});
+  const A=P.A.map((r,i)=>r.concat(soft.map(k=>k===i?(P.ty[i]==="ge"?1:-1):0)));
+  const c=P.c.concat(soft.map(k=>1e7/Math.max(Math.abs(P.b[k]),1)));
+  const x=lpSolve(c,A,P.b,P.ty);return x?x.slice(0,P.vars.length):null}
 function lcNeedPrice(){const g=LGROUP[STAGE]??2;return ING.filter(i=>{if(!isUsed(i)||PRICE[i.id]>0)return false;if(LIMITS[i.id]&&LIMITS[i.id][g]===0)return false;const has=(KG[i.id]||0)>0;if(LC_FIXED.includes(i.id)||i.med)return has;return has||!(i.lib&&USE[i.id]!==true)})}
 function lcStatus(){const need=lcNeedPrice(),ids=need.map(i=>i.id);
   document.querySelectorAll("#ingTable input[data-pid]").forEach(el=>el.classList.toggle("needprice",ids.includes(el.dataset.pid)));
@@ -841,9 +869,11 @@ function leastCost(){
   {const g=LGROUP[STAGE]??2;const removed=[];ING.forEach(i=>{const L=LIMITS[i.id];const drugs=["enra","cocci","tiam","ctc","sulpha"];if(L&&L[g]===0&&(KG[i.id]||0)>0&&(!LC_FIXED.includes(i.id)||drugs.includes(i.id)||i.med)&&!AUTO_IDS.includes(i.id)){removed.push(i.n);delete KG[i.id]}});
    if(removed.length){calc()}window.LC_REMOVED=removed}
   const used=ING.filter(i=>(KG[i.id]||0)>0&&!LC_FIXED.includes(i.id)&&!(PRICE[i.id]>0));
-  const P=buildLP();
+  let P=buildLP();
   if(P.vars.length<2){msg("<b>Least-cost needs prices.</b> Enter ₹/kg in the last column for the materials you have (maize, soya, DCP, salt, calcite, DL-methionine and so on). Only ticked materials with a price are used."+upTxt);return}
-  const x=lpSolve(P.c,P.A,P.b,P.ty);
+  let x=lpSolve(P.c,P.A,P.b,P.ty),NEAR=false,NOMARGIN=false;
+  if(!x&&MARGIN>0){const m=MARGIN;MARGIN=0;const P0=buildLP();MARGIN=m;const x0=lpSolve(P0.c,P0.A,P0.b,P0.ty);if(x0){x=x0;P=P0;NOMARGIN=true}else P=P0}
+  if(!x){const xs=softLP(P);if(xs){x=xs;NEAR=true}}
   if(!x){const bad=NUTS.filter(n=>n.k!=="d3"&&(()=>{const Q=buildLP(null,n.k);return !lpSolve(Q.c,Q.A,Q.b,Q.ty)})()).map(n=>n.n);
     let hint=bad.length?` Cannot be reached with the priced ingredients: <b>${bad.join(", ")}</b>.`:"";
     if(!bad.length){for(const n of NUTS){if(n.k==="d3")continue;const Q=buildLP(n.k);if(lpSolve(Q.c,Q.A,Q.b,Q.ty)){hint=` Every target can be met alone, but not together with <b>${n.n}</b>.`;break}}}
@@ -858,6 +888,10 @@ function leastCost(){
   const after=ING.reduce((a,i)=>a+(KG[i.id]||0)*(PRICE[i.id]||0),0)/(ING.reduce((a,i)=>a+(KG[i.id]||0),0)||1);
   $("#lcUndo").hidden=false;
   msg(`<b>Least-cost mix applied: ₹${fmt(after,2)}/kg</b> (was ₹${fmt(before,2)}/kg).`+(used.length?` Not priced, so kept as they were: ${used.map(i=>i.n).join(", ")}.`:"")+(window.LC_REMOVED&&window.LC_REMOVED.length?` Removed (not allowed in this stage): ${window.LC_REMOVED.join(", ")}.`:"")+" Additives and medicines were kept as they are.",true);
+  if(NOMARGIN&&!NEAR){box.innerHTML+=`<br>Note: the ${MARGIN}% safety margin could not be kept for every nutrient with these materials, so this mix meets the exact targets instead.`}
+  if(NEAR){const tot=ING.reduce((a,i)=>a+(KG[i.id]||0),0),t=STAGES[STAGE].t,skip=CONC_MIN[STAGE]&&isUsed(ING.find(i=>i.id==="lc40"))?["sand","deb"]:[];
+    const miss=NUTS.filter(n=>n.k!=="d3"&&!skip.includes(n.k)&&t[n.k]).map(n=>{const v=nv(n.k,tot),[lo,hi]=t[n.k];const d=v<lo*0.99?"low":(v>hi*1.01&&!["lys","tsaa","thr"].includes(n.k))?"high":"";return d?`${n.n} ${fmt(v,v<5?3:v<100?2:0)} (${d}; target ${fmt(lo,lo<5?2:0)}–${fmt(hi,hi<5?2:0)})`:""}).filter(Boolean);
+    box.innerHTML=`<b>100% of targets is not possible with these materials, so the nearest mix was applied: ₹${fmt(after,2)}/kg.</b>`+(miss.length?`<br>Still outside target: <b>${miss.join("; ")}</b>.`:"")+`<br>To reach 100%: tick and price more materials (for example DCP, salt, soda salt, calcite, shell grit, DL-methionine, L-lysine, oil), or raise a Max % in the Raw material master. Undo least-cost brings back the previous mix.`;box.className="wtalert near"}
 }
 function calc(){
   autoAdd();
@@ -868,25 +902,26 @@ function calc(){
   let cost=0,costKnown=false;
   ING.forEach(i=>{const kg=KG[i.id]||0;{const pc=$("#pc_"+i.id);if(pc){pc.textContent=tot?fmt(kg/tot*100,2)+"%":"–";const L=LIMITS[i.id],tr=pc.parentElement,w=$("#w_"+i.id);const max=i.id==="lc40"?CONC_MAX[STAGE]*1.005:(L?L[LGROUP[STAGE]??2]:null);{const mx=$("#mx_"+i.id);if(mx)mx.textContent=L?(max===0?"Not used":fmt(max,max<1?3:1)+"%"):"Label"}const pct=tot?kg/tot*100:0;const high=(L||i.id==="lc40")&&max!==null&&kg>0&&pct>max*1.005+1e-9;tr.classList.toggle("over",!!high);tr.classList.toggle("zero",!(kg>0));if(w)w.textContent=high?(max===0?"HIGH – not for this stage. ":"HIGH – max "+fmt(max,max<1?3:1)+"%. ")+L[3]:"";const rem=i.id==="cocci"&&USE.cocci===true&&["chick","grower","dev"].includes(STAGE)&&!(kg>0);tr.classList.toggle("remind",rem);if(rem&&w)w.textContent="Reminder: add a coccidiostat at label dose, unless the birds are vaccinated against coccidiosis.";
   {const wy=$("#why_"+i.id);if(wy){const used=isUsed(i),auto=AUTO_IDS.includes(i.id)||(BAL_IDS.includes(i.id)&&!!concInfo()),CI=concInfo();let t="",cls="";
-   if(!used){t="Not ticked: not used or checked";cls="mute"}
+   if(!used&&!(AUTO_IDS.includes(i.id)&&AUTO_ON&&USE[i.id]===undefined)){t="Not ticked: not used or checked";cls="mute"}
    else if(i.id==="lc40"&&kg>0&&!SEL.lc40){t="Choose concentrate brand so its premixes are counted";cls="warn2"}
    else if(i.id==="lc40"&&kg>0&&CI&&CI.noRate){t="Brand has no inclusion rate: premixes added at full dose. Set kg per ton in My products";cls="warn2"}
    else if(max===0&&kg>0){t="Not allowed in this stage";cls="bad2"}
    else if(max===0){t="Not for this stage";cls="mute"}
    else if(isUsed(i)&&!(kg>0)&&!AUTO_IDS.includes(i.id)&&!(BAL_IDS||[]).includes(i.id)&&!(PCATS&&PCATS[i.id])&&!(max===0)){t=PRICE[i.id]>0?"Ticked, 0 kg: type kg (and tick Keep in the Keep column), or least-cost adds it only if it lowers cost":"Ticked, 0 kg: type kg here, or add a price for least-cost";cls="warn2"}
    else if(!(kg>0)){
-     if(AUTO_IDS.includes(i.id)&&AUTO_ON){t=(CI&&((i.id==="premix"&&CI.has.vit)||(i.id==="tm"&&CI.has.tm)||(i.id==="binder"&&CI.has.binder)))?"0: covered by concentrate":(i.id==="emul"?"0: added only when oil is used":["vitese","vitc","betaine"].includes(i.id)?"0: chick to pre-lay only":"0: auto");cls="mute"}
+     if(AUTO_IDS.includes(i.id)&&AUTO_ON){t=(CI&&((i.id==="premix"&&CI.has.vit)||(i.id==="tm"&&CI.has.tm)||(i.id==="binder"&&CI.has.binder)||["liver","choline"].includes(i.id)))?"0: covered by concentrate":(i.id==="emul"?"0: added only when oil is used":["vitese","vitc","betaine"].includes(i.id)?"0: chick to pre-lay only":"0: auto");cls="mute"}
      else if(BAL_IDS.includes(i.id)&&CI){t="0: concentrate already supplies enough";cls="mute"}
      else if(PCATS[i.id]&&!SEL[i.id]){t="No kg: choose a brand or type kg";cls="warn2"}
      else{t="No kg entered";cls="mute"}}
    else if(i.id==="lc40"&&CONC_MIN[STAGE]&&kg>0){const pc=tot?kg/tot*100:0;t=pc<CONC_MIN[STAGE]*0.99?"Set at "+CONC_MIN[STAGE]+"% for this stage: now "+fmt(pc,1)+"%":"Fixed at "+CONC_MIN[STAGE]+"% (main protein source)";cls=pc<CONC_MIN[STAGE]*0.99?"warn2":"okc"}
    else if(LOCK[i.id]&&kg>0){t="Kept at your kg: least-cost will not change it";cls="okc"}
    else if(MATCH_ON&&i.id===FILLER){t="Auto: adjusted to match batch weight";cls="okc"}
-   else if(auto&&(i.id==="premix"||i.id==="tm")&&(PREMIX_BOOST[STAGE]||1)>1){t="Auto-added: label dose +25% for "+STAGES[STAGE].n;cls="okc"}
+   else if(auto&&["premix","tm","liver","choline"].includes(i.id)&&(PREMIX_BOOST[STAGE]||1)>1){t="Auto-added: label dose +25% for "+STAGES[STAGE].n;cls="okc"}
    else if(auto){t=BAL_IDS.includes(i.id)?"Auto top-up (only the shortfall)":"Auto-added";cls="okc"}
    else if(!(PRICE[i.id]>0)&&!LC_FIXED.includes(i.id)&&!i.med){t="Price needed: enter ₹/kg to run least-cost";cls="bad2"}
    else if(!(PRICE[i.id]>0)){t="No price: not in cost";cls="mute"}
    else{t="OK";cls="okc"}
+   if(i.id==="calcite"&&kg>0&&GRIT_STAGES.includes(STAGE)){const gr=KG.grit||0;if(gr<GRIT_SHARE*(gr+kg)-0.05){t="Layer: shell grit should be at least 60% of grit + calcite for night-time shell calcium (now "+fmt(gr/(gr+kg)*100,0)+"%)";cls="warn2"}}
    try{if(used&&lcNeedPrice().some(x=>x.id===i.id)&&!/^Price needed/.test(t)){t="Price needed: enter ₹/kg"+(t?" ("+t+")":"");cls="bad2"}}catch(e){}
    wy.textContent=t;wy.className="why "+cls}}
   }}if(PRICE[i.id]){cost+=kg*PRICE[i.id];costKnown=true}});
@@ -916,6 +951,7 @@ function calc(){
     </div>`}).join("");
   const perKg=costKnown&&tot?cost/tot:null;const unpricedN=ING.filter(i=>(KG[i.id]||0)>0&&!(PRICE[i.id]>0)).length;
   const VR=renderVits(tot)||{ok:0,n:0},MR=renderMins(tot)||{ok:0,n:0};$("#summary").innerHTML=`<span>Batch <b>${fmt(tot,1)} kg</b></span><span>On target <b>${okCount+VR.ok+MR.ok}/${NUTS.length+VR.n+MR.n}</b></span>${perKg?`<span>Cost <b>₹${fmt(perKg,2)}/kg</b>${unpricedN?` <span style="color:var(--low)">(partial: ${unpricedN} item${unpricedN>1?"s":""} without price)</span>`:""}</span>`:`<span>Enter ₹/kg to see cost</span>`}`;
+  try{phistTouch()}catch(e){}try{renderMill()}catch(e){}
   store.set("ff_kg",KG);store.set("ff_price",PRICE);store.set("ff_ing",ING);store.set("ff_stage",STAGE);
   try{lcStatus()}catch(e){}
 }
@@ -954,13 +990,14 @@ $("#delSavedBtn").addEventListener("click",()=>{const b=$("#delSavedBtn");
   if(b.dataset.armed!=="1"){b.dataset.armed="1";b.textContent="Tap again to delete";setTimeout(()=>{b.dataset.armed="";b.textContent="Delete this saved formula"},3000);return}
   const i=+$("#preset").value.split(":")[1];const n=SAVED[i]&&SAVED[i].name;SAVED.splice(i,1);putSaved();fillPresets();saveMsg(n?`Deleted “${n}”.`:"")});
 $("#exportBtn").addEventListener("click",()=>{
-  const d=new Date().toISOString().slice(0,10);saveFile(`feed-formulas-${d}.json`,JSON.stringify({app:"FeedFormula",version:1,formulas:SAVED,products:PRODUCTS,meds:MEDS,prices:PRICE,priceDate:PRICE_DATE,raws:RAWS,limits:getJ("ff_limits")||{},targets:getJ("ff_targets")||{},stageopts:getJ("ff_stageopts")||null},null,1))});
+  const d=new Date().toISOString().slice(0,10);try{localStorage.setItem("ff_lastbackup",String(Date.now()))}catch(x){}const bb=$("#bkBar");if(bb)bb.hidden=true;saveFile(`feed-formulas-${d}.json`,JSON.stringify({app:"FeedFormula",version:1,phist:PHIST,formulas:SAVED,products:PRODUCTS,meds:MEDS,prices:PRICE,priceDate:PRICE_DATE,raws:RAWS,limits:getJ("ff_limits")||{},targets:getJ("ff_targets")||{},stageopts:getJ("ff_stageopts")||null},null,1))});
 $("#importFile").addEventListener("change",e=>{const f=e.target.files&&e.target.files[0];if(!f)return;const r=new FileReader();
   r.onload=()=>{try{const j=JSON.parse(r.result);if(!j||!Array.isArray(j.formulas))throw 0;let n=0;
       if(Array.isArray(j.raws))j.raws.forEach(r=>{if(r&&r.id&&!ING.find(i=>i.id===r.id)){RAWS.push(r);ING.push({...r.nut,id:r.id,n:r.n,raw:true});LIMITS[r.id]=[r.lim[0],r.lim[1],r.lim[2],"Above the limit set in Raw material master."]}});putJ("ff_raws",RAWS);
       if(j.limits)for(const [id,v] of Object.entries(j.limits))if(Array.isArray(v)){LIMITS[id]=[v[0],v[1],v[2],(LIMITS[id]&&LIMITS[id][3])||""]}if(j.limits)putJ("ff_limits",j.limits);
       if(j.targets){for(const [st,o] of Object.entries(j.targets))if(STAGES[st])for(const [k,v] of Object.entries(o))STAGES[st].t[k]=v;putJ("ff_targets",j.targets)}
       if(j.stageopts){Object.assign(CONC_MAX,j.stageopts.CONC_MAX||{});for(const k of Object.keys(CONC_MIN))delete CONC_MIN[k];Object.assign(CONC_MIN,j.stageopts.CONC_MIN||{});Object.assign(PREMIX_BOOST,j.stageopts.PREMIX_BOOST||{});putJ("ff_stageopts",j.stageopts)}if(j.prices&&typeof j.prices==="object"){for(const [k,v] of Object.entries(j.prices))if(v>0)PRICE[k]=v;if(j.priceDate){PRICE_DATE=j.priceDate;try{localStorage.setItem("ff_price_date",PRICE_DATE)}catch(x){}}}
+      if(Array.isArray(j.phist))j.phist.forEach(h=>{if(h&&h.d&&h.p&&!PHIST.find(x=>x.d===h.d))PHIST.push(h)});PHIST.sort((a,b)=>a.d<b.d?-1:1);putJ("ff_phist",PHIST);
       j.formulas.forEach(x=>{if(!x||!x.name||!x.kg)return;const k=SAVED.findIndex(y=>y.name===x.name);if(k>=0)SAVED[k]=x;else SAVED.push(x);n++});
       if(j.products)for(const [c,list] of Object.entries(j.products)){PRODUCTS[c]=PRODUCTS[c]||[];(list||[]).forEach(pr=>{if(pr&&pr.name&&!PRODUCTS[c].find(q=>q.name===pr.name))PRODUCTS[c].push(pr)})}
       if(Array.isArray(j.meds))j.meds.forEach(m=>{if(m&&m.id&&!MEDS.find(x=>x.id===m.id)){MEDS.push(m);ING.push(medToIng(m));medLimits(m)}});
@@ -1050,7 +1087,7 @@ $("#tgReset").addEventListener("click",()=>{const b=$("#tgReset");if(b.dataset.a
 function renderMedList(){$("#medList").innerHTML=MEDS.length?MEDS.map(m=>`<div class="pitem"><div><b>${esc(m.name)}</b> <span class="hint">${m.dose} g/t · ${["Chick","Grower","Layer"].filter((_,g)=>m.st[g]).join(", ")||"no stage"}${m.note?" · "+esc(m.note):""}</span></div><button type="button" class="ghost sm" data-mdel="${m.id}">Delete</button></div>`).join(""):`<p class="hint">No medicines added yet.</p>`;
   $("#medList").querySelectorAll("[data-mdel]").forEach(btn=>btn.addEventListener("click",()=>{if(btn.dataset.armed!=="1"){btn.dataset.armed="1";btn.textContent="Tap again";setTimeout(()=>{btn.dataset.armed="";btn.textContent="Delete"},3000);return}
     const id=btn.dataset.mdel;MEDS=MEDS.filter(m=>m.id!==id);saveMeds();ING=ING.filter(i=>i.id!==id);delete KG[id];delete LIMITS[id];renderMedList();buildIng();buildVals();calc()}))}
-function renderSavedList(){$("#savedList").innerHTML=SAVED.length?SAVED.map((f,i)=>`<div class="pitem"><div><b>${esc(f.name)}</b> <span class="hint">${f.date} · ${STAGES[f.stage]?STAGES[f.stage].n:f.stage} · ${fmt(Object.values(f.kg).reduce((a,v)=>a+(v||0),0),0)} kg</span></div><div style="display:flex;gap:6px"><button type="button" class="sm" data-sload="${i}">Open</button><button type="button" class="ghost sm" data-sdel="${i}">Delete</button></div></div>`).join(""):`<p class="hint">No saved formulas yet. Save one from Formulation.</p>`;
+function renderSavedList(){$("#savedList").innerHTML=SAVED.length?SAVED.map((f,i)=>`<div class="pitem"><div><b>${esc(f.name)}</b> <span class="hint">${f.date} · ${STAGES[f.stage]?STAGES[f.stage].n:f.stage} · ${fmt(Object.values(f.kg).reduce((a,v)=>a+(v||0),0),0)} kg</span>${costTrend(f)}</div><div style="display:flex;gap:6px"><button type="button" class="sm" data-sload="${i}">Open</button><button type="button" class="ghost sm" data-sdel="${i}">Delete</button></div></div>`).join(""):`<p class="hint">No saved formulas yet. Save one from Formulation.</p>`;
   $("#savedList").querySelectorAll("[data-sload]").forEach(b=>b.addEventListener("click",()=>{LC_LOCK=false;loadSaved(+b.dataset.sload);showTab("form")}));
   $("#savedList").querySelectorAll("[data-sdel]").forEach(b=>b.addEventListener("click",()=>{if(b.dataset.armed!=="1"){b.dataset.armed="1";b.textContent="Tap again";setTimeout(()=>{b.dataset.armed="";b.textContent="Delete"},3000);return}
     SAVED.splice(+b.dataset.sdel,1);putSaved();fillPresets();renderSavedList()}))}
@@ -1065,6 +1102,42 @@ function showTab(t){TAB=t;try{localStorage.setItem("ff_tab",t)}catch(e){}
   try{if(t==="raw")renderRaw();if(t==="targets")renderTargets();if(t==="meds")renderMedList();if(t==="saved")renderSavedList();if(t==="prices")buildPriceList();}catch(e){const b=document.getElementById("errBar");if(b){b.style.display="block";b.textContent="Program error on this page: "+e.message+". Please send a photo of this bar."}}
   window.scrollTo({top:0})}
 showTab(TAB);buildIng();calc();
+var APP_VER="v13 · 26 Oct 2026";{const v=$("#appVer");if(v)v.textContent=APP_VER}
+var MARGIN=(()=>{try{const v=parseFloat(localStorage.getItem("ff_margin"));return isNaN(v)?2:v}catch(e){return 2}})();
+{const m=$("#marginIn");if(m){m.value=MARGIN;m.addEventListener("change",()=>{MARGIN=Math.min(5,Math.max(0,parseFloat(m.value)||0));m.value=MARGIN;try{localStorage.setItem("ff_margin",String(MARGIN))}catch(e){}})}}
+// price history
+var PHIST=(()=>{try{return JSON.parse(localStorage.getItem("ff_phist"))||[]}catch(e){return []}})();
+function phistTouch(){const d=new Date().toISOString().slice(0,10),p={};for(const [k,v] of Object.entries(PRICE))if(v>0)p[k]=v;if(!Object.keys(p).length)return;
+  const last=PHIST.find(x=>x.d===d);if(last&&JSON.stringify(last.p)===JSON.stringify(p))return;if(last)last.p=p;else PHIST.push({d,p});PHIST.sort((a,b)=>a.d<b.d?-1:1);while(PHIST.length>120)PHIST.shift();try{localStorage.setItem("ff_phist",JSON.stringify(PHIST))}catch(e){}}
+const dShort=d=>{const x=new Date(d+"T00:00:00");return x.toLocaleDateString("en-IN",{day:"numeric",month:"short"})};
+function renderPHist(){const box=$("#phistBox");if(!box)return;const H=PHIST.slice(-6);if(!H.length){box.innerHTML='<p class="hint">History starts from the first price you enter. Each day with a change is kept.</p>';return}
+  const ids=[...new Set(H.flatMap(h=>Object.keys(h.p)))].filter(id=>ING.find(i=>i.id===id));
+  box.innerHTML='<div style="overflow-x:auto"><table class="mtab"><tr><th>Material</th>'+H.map(h=>'<th class="n">'+dShort(h.d)+'</th>').join("")+'</tr>'+ids.map(id=>{const n=ING.find(i=>i.id===id).n;let prev=null;return '<tr><td>'+esc(n)+'</td>'+H.map(h=>{const v=h.p[id];const c=prev!=null&&v!=null&&v!==prev?(v>prev?"up":"dn"):"";if(v!=null)prev=v;return '<td class="n '+c+'">'+(v!=null?fmt(v,v<10?2:1):"–")+'</td>'}).join("")+'</tr>'}).join("")+'</table></div><p class="hint">Red = price went up, green = price went down, compared with the previous date.</p>'}
+function costTrend(f){const H=PHIST.slice(-4);if(!H.length)return "";const tot=Object.values(f.kg).reduce((a,v)=>a+(v||0),0)||1;
+  return '<div class="hint">₹/kg by price date: '+H.map(h=>{let c=0,miss=0;for(const [id,kg] of Object.entries(f.kg)){if(!(kg>0))continue;const p=h.p[id];if(p>0)c+=kg*p;else miss++}return dShort(h.d)+' ₹'+fmt(c/tot,2)+(miss?'*':'')}).join(" · ")+(H.some(h=>Object.entries(f.kg).some(([id,kg])=>kg>0&&!(h.p[id]>0)))?' <span title="Some materials had no price on that date">(* part priced)</span>':'')+'</div>'}
+{const _b=buildPriceList;buildPriceList=function(){_b.apply(this,arguments);try{renderPHist()}catch(e){}}}
+// mill batch sheet
+function millData(){const set=parseFloat($("#scaleTo").value)||1050,tot=ING.reduce((a,i)=>a+(KG[i.id]||0),0)||set;
+  let want=parseFloat(($("#millTotal")||{}).value);if(!(want>0))want=set;const n=Math.max(1,Math.ceil(want/tot-1e-9));
+  const LIQ=["oil"],rows0=ING.filter(i=>(KG[i.id]||0)>0).map(i=>({id:i.id,n:i.n+(SEL[i.id]?" ("+SEL[i.id]+")":""),kg:KG[i.id]})),liq=rows0.filter(r=>LIQ.includes(r.id)),rows=rows0.filter(r=>!LIQ.includes(r.id));
+  const big=rows.filter(r=>r.kg>=10).sort((a,b)=>b.kg-a.kg),small=rows.filter(r=>r.kg<10).sort((a,b)=>b.kg-a.kg);
+  return {set,tot,want,n,big,small,liq,smallKg:small.reduce((a,r)=>a+r.kg,0)}}
+function millHTML(d,print){const kg=v=>fmt(v,v<10?2:1),all=v=>fmt(v*d.n,v*d.n<10?2:1);
+  const tb=(rows,start)=>'<table class="mtab"><tr><th>#</th><th>Material</th><th class="n">kg per batch</th><th class="n">kg for '+d.n+' batch'+(d.n>1?'es':'')+'</th>'+(print?'<th>Done ✓</th>':'')+'</tr>'+rows.map((r,i)=>'<tr><td>'+(start+i)+'</td><td>'+esc(r.n)+'</td><td class="n">'+kg(r.kg)+'</td><td class="n">'+all(r.kg)+'</td>'+(print?'<td></td>':'')+'</tr>').join("")+'</table>';
+  return '<p><b>'+d.n+' batch'+(d.n>1?'es':'')+' of '+fmt(d.tot,1)+' kg</b> = '+fmt(d.tot*d.n,0)+' kg'+(d.tot*d.n>d.want+0.5?' (asked '+fmt(d.want,0)+' kg; last batch rounds up)':'')+'.</p>'+
+   '<h2 style="font-size:1rem">Step 1 – Pre-mix bucket (weigh first, mix well with about 10 kg of ground maize)</h2>'+tb(d.small,1)+'<p class="hint">Pre-mix total: '+kg(d.smallKg)+' kg per batch. Add to the mixer after the main ingredients are in.</p>'+
+   '<h2 style="font-size:1rem">Step 2 – Main ingredients (largest first)</h2>'+tb(d.big,d.small.length+1)+(d.liq.length?'<h2 style="font-size:1rem">Step 3 – Oil (add slowly while the mixer runs)</h2>'+tb(d.liq,d.small.length+d.big.length+1):'')+
+   '<p class="hint">Mix 4–5 minutes after the last ingredient. Keep this sheet with the batch record.</p>'}
+function renderMill(){const p=$("#millPrev");if(!p)return;const t=$("#millTotal");if(t&&!t.value)t.value=$("#scaleTo").value||1050;p.innerHTML=millHTML(millData(),false)}
+{const mt=$("#millTotal");if(mt)mt.addEventListener("input",renderMill)}
+{const mb=$("#millBtn");if(mb)mb.addEventListener("click",()=>{const d=millData();let el=document.getElementById("millSheet");if(!el){el=document.createElement("div");el.id="millSheet";document.body.appendChild(el)}
+  const name=(($("#pdfName")||{}).value||"Feed formula").trim();
+  el.innerHTML='<h1>Mill batch sheet – '+esc(name)+'</h1><div>'+esc(STAGES[STAGE].n)+' · Date: '+new Date().toLocaleDateString("en-IN")+' · Feed Formula '+APP_VER+'</div>'+millHTML(d,true)+'<p style="margin-top:24px">Weighed by: ____________ &nbsp;&nbsp; Checked by: ____________</p>';
+  document.body.classList.add("millprint");const done=()=>{document.body.classList.remove("millprint");removeEventListener("afterprint",done)};addEventListener("afterprint",done);window.print();setTimeout(done,1500)})}
+// backup reminder
+{const bb=$("#bkBar");if(bb){let last=0;try{last=+localStorage.getItem("ff_lastbackup")||0}catch(e){}const days=last?Math.floor((Date.now()-last)/864e5):null;
+  if((days===null&&(SAVED.length||Object.keys(PRICE).length))||days>=7){$("#bkText").textContent=days===null?"You have not exported a backup yet. Your formulas and prices live only on this computer.":"Last backup was "+days+" days ago.";bb.hidden=false}
+  $("#bkNow").addEventListener("click",()=>{$("#exportBtn").click()});$("#bkLater").addEventListener("click",()=>{bb.hidden=true})}}
 $("#lcBtn").addEventListener("click",leastCost);
 {const r=$("#roundOn");r.checked=ROUND_ON;r.addEventListener("change",()=>{ROUND_ON=r.checked;try{localStorage.setItem("ff_round",ROUND_ON?"1":"0")}catch(e){}LC_LOCK=false;calc()});}
 document.addEventListener("change",e=>{if(e.target&&e.target.matches&&e.target.matches("input[data-id]"))calc()});
