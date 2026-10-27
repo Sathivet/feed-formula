@@ -150,6 +150,8 @@ input.needprice{border:2px solid var(--high)!important;background:var(--high-bg)
  #millSheet table{border-collapse:collapse;width:100%;margin:6px 0 12px}#millSheet th,#millSheet td{border:1px solid #444;padding:4px 6px;font-size:11pt;text-align:left}#millSheet td.n{text-align:right}#millSheet h1{font-size:15pt;margin:0 0 4px}#millSheet h2{font-size:12pt;margin:10px 0 2px}}
 .mtab{border-collapse:collapse;width:100%;font-size:.9rem;margin:6px 0 12px}.mtab th,.mtab td{border-bottom:1px solid var(--line,#ddd);padding:5px 8px;text-align:left}.mtab td.n{text-align:right;font-variant-numeric:tabular-nums}
 .up{color:var(--high)}.dn{color:var(--ok)}
+.addgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:4px 14px;margin-top:4px}.addgrid label{display:flex;align-items:flex-start;gap:6px;font-size:.9rem}
+.addpanel{border:1px dashed var(--line,#ccc);border-radius:8px;padding:8px 12px}.addpanel summary{cursor:pointer}
 .wtalert{font-size:.92rem;border-radius:8px;padding:10px 12px}
 .wtalert:empty{display:none}
 .wtalert.ok{background:var(--ok-bg);color:var(--ok);font-weight:600}
@@ -377,6 +379,12 @@ input.needprice{border:2px solid var(--high)!important;background:var(--high-bg)
     <label class="f" style="flex-direction:row;align-items:center;gap:6px;font-size:.9rem"><input type="checkbox" id="matchOn"> Match set batch weight automatically by adjusting
       <select id="fillerSel" aria-label="Ingredient used to match batch weight"></select></label>
     <label class="f" style="flex-direction:row;align-items:center;gap:6px;font-size:.9rem"><input type="checkbox" id="autoAdd"> Add vitamins, minerals and additives automatically</label>
+    <details id="addPanel" class="addpanel" style="flex-basis:100%"><summary><b>Additives &amp; medicines: add or not add</b> <span class="hint" id="addSum"></span></summary>
+      <label class="f" style="flex-direction:row;align-items:center;gap:6px;margin:8px 0"><input type="checkbox" id="boostOn"> +25% extra premix, trace mineral, liver tonic and choline in chick, grower and developer</label>
+      <div class="addgrid" id="addAuto"></div>
+      <div class="hint" style="margin-top:8px">Medicines (least-cost keeps them exactly as set here):</div>
+      <div class="addgrid" id="addMeds"></div>
+    </details>
     <label class="f" style="flex-direction:row;align-items:center;gap:6px;font-size:.9rem"><input type="checkbox" id="showAll"> Show full ingredient library (jowar, wheat, fish meal, DDGS and more)</label>
   </div>
 </section>
@@ -772,7 +780,7 @@ function autoAdd(){
   const pd=(cat,def)=>{try{const pr=(PRODUCTS&&PRODUCTS[cat]||[]).find(x=>x.name===SEL[cat]);return pr&&pr.dose>0?pr.dose:def}catch(e){return def}};
   const CI=concInfo(),cv=CI&&CI.full;
   const rest=has=>{if(!(CI&&has))return 1;const r=1-CI.frac;return r<0.1?0:r};
-  const boost=PREMIX_BOOST[STAGE]||1;
+  const boost=BOOST_ON?(PREMIX_BOOST[STAGE]||1):1;
   const g={premix:pd("premix",500)*boost*rest(CI&&CI.has.vit),tm:pd("tm",500)*boost*rest(CI&&CI.has.tm),liver:500*boost*rest(!!CI),choline:500*boost*rest(!!CI),binder:1000*rest(CI&&CI.has.binder),
     vitese:young?pd("vitese",200):0,vitc:young?pd("vitc",150):0,betaine:young?1000:0,
     emul:(KG.oil||0)>0?pd("emul",500):0};
@@ -781,6 +789,7 @@ function autoAdd(){
   balanceTop(!!CI);
 }
 var BAL_IDS=["dcp","salt","lysHcl","dlmet"];
+var BOOST_ON=(()=>{try{return localStorage.getItem("ff_boost")!=="0"}catch(e){return true}})();
 // phytase credit from FTU per kg of feed (used when the label gives FTU but no matrix): 500 FTU = +0.10% avP, +0.10% Ca, +30 kcal; smaller gain above 500, none above 1500
 function phyMatrix(ftu){const a=Math.min(Math.max(ftu,0),500),b=Math.min(Math.max(ftu-500,0),1000);return {p:0.10*a/500+0.03*b/1000,ca:0.10*a/500+0.03*b/1000,me:30*a/500+20*b/1000}}
 function phyInfo(){const tot=ING.reduce((a,i)=>a+(KG[i.id]||0),0)||1,src=[];
@@ -924,7 +933,7 @@ function calc(){
    else if(i.id==="lc40"&&CONC_MIN[STAGE]&&kg>0){const pc=tot?kg/tot*100:0;t=pc<CONC_MIN[STAGE]*0.99?"Set at "+CONC_MIN[STAGE]+"% for this stage: now "+fmt(pc,1)+"%":"Fixed at "+CONC_MIN[STAGE]+"% (main protein source)";cls=pc<CONC_MIN[STAGE]*0.99?"warn2":"okc"}
    else if(LOCK[i.id]&&kg>0){t="Kept at your kg: least-cost will not change it";cls="okc"}
    else if(MATCH_ON&&i.id===FILLER){t="Auto: adjusted to match batch weight";cls="okc"}
-   else if(auto&&["premix","tm","liver","choline"].includes(i.id)&&(PREMIX_BOOST[STAGE]||1)>1){t="Auto-added: label dose +25% for "+STAGES[STAGE].n;cls="okc"}
+   else if(auto&&["premix","tm","liver","choline"].includes(i.id)&&BOOST_ON&&(PREMIX_BOOST[STAGE]||1)>1){t="Auto-added: label dose +25% for "+STAGES[STAGE].n;cls="okc"}
    else if(auto){t=BAL_IDS.includes(i.id)?"Auto top-up (only the shortfall)":"Auto-added";cls="okc"}
    else if(!(PRICE[i.id]>0)&&!LC_FIXED.includes(i.id)&&!i.med){t="Price needed: enter ₹/kg to run least-cost";cls="bad2"}
    else if(!(PRICE[i.id]>0)){t="No price: not in cost";cls="mute"}
@@ -963,7 +972,7 @@ function calc(){
     </div>`}).join("");
   const perKg=costKnown&&tot?cost/tot:null;const unpricedN=ING.filter(i=>(KG[i.id]||0)>0&&!(PRICE[i.id]>0)).length;
   const VR=renderVits(tot)||{ok:0,n:0},MR=renderMins(tot)||{ok:0,n:0};$("#summary").innerHTML=`<span>Batch <b>${fmt(tot,1)} kg</b></span><span>On target <b>${okCount+VR.ok+MR.ok}/${NUTS.length+VR.n+MR.n}</b></span>${perKg?`<span>Cost <b>₹${fmt(perKg,2)}/kg</b>${unpricedN?` <span style="color:var(--low)">(partial: ${unpricedN} item${unpricedN>1?"s":""} without price)</span>`:""}</span>`:`<span>Enter ₹/kg to see cost</span>`}`;
-  try{phistTouch()}catch(e){}try{renderMill()}catch(e){}
+  try{renderAddOpts()}catch(e){}try{phistTouch()}catch(e){}try{renderMill()}catch(e){}
   store.set("ff_kg",KG);store.set("ff_price",PRICE);store.set("ff_ing",ING);store.set("ff_stage",STAGE);
   try{lcStatus()}catch(e){}
 }
@@ -1114,7 +1123,7 @@ function showTab(t){TAB=t;try{localStorage.setItem("ff_tab",t)}catch(e){}
   try{if(t==="raw")renderRaw();if(t==="targets")renderTargets();if(t==="meds")renderMedList();if(t==="saved")renderSavedList();if(t==="prices")buildPriceList();}catch(e){const b=document.getElementById("errBar");if(b){b.style.display="block";b.textContent="Program error on this page: "+e.message+". Please send a photo of this bar."}}
   window.scrollTo({top:0})}
 showTab(TAB);buildIng();calc();
-var APP_VER="v14 · 27 Oct 2026";{const v=$("#appVer");if(v)v.textContent=APP_VER}
+var APP_VER="v15 · 27 Oct 2026";{const v=$("#appVer");if(v)v.textContent=APP_VER}
 var MARGIN=(()=>{try{const v=parseFloat(localStorage.getItem("ff_margin"));return isNaN(v)?2:v}catch(e){return 2}})();
 {const m=$("#marginIn");if(m){m.value=MARGIN;m.addEventListener("change",()=>{MARGIN=Math.min(5,Math.max(0,parseFloat(m.value)||0));m.value=MARGIN;try{localStorage.setItem("ff_margin",String(MARGIN))}catch(e){}})}}
 // price history
@@ -1150,6 +1159,19 @@ function renderMill(){const p=$("#millPrev");if(!p)return;const t=$("#millTotal"
 {const bb=$("#bkBar");if(bb){let last=0;try{last=+localStorage.getItem("ff_lastbackup")||0}catch(e){}const days=last?Math.floor((Date.now()-last)/864e5):null;
   if((days===null&&(SAVED.length||Object.keys(PRICE).length))||days>=7){$("#bkText").textContent=days===null?"You have not exported a backup yet. Your formulas and prices live only on this computer.":"Last backup was "+days+" days ago.";bb.hidden=false}
   $("#bkNow").addEventListener("click",()=>{$("#exportBtn").click()});$("#bkLater").addEventListener("click",()=>{bb.hidden=true})}}
+function putUse(){try{localStorage.setItem("ff_use",JSON.stringify(USE))}catch(e){}}
+function renderAddOpts(){const A=$("#addAuto"),M=$("#addMeds");if(!A||!M)return;const g=LGROUP[STAGE]??2;
+  const autoOn=id=>USE[id]!==false;
+  A.innerHTML=AUTO_IDS.map(id=>{const i=ING.find(x=>x.id===id);if(!i)return "";return `<label><input type="checkbox" data-aopt="${id}"${autoOn(id)?" checked":""}> <span>${esc(i.n)}${SEL[id]?` <span class="hint">(${esc(SEL[id])})</span>`:""}</span></label>`}).join("");
+  const meds=ING.filter(i=>i.med||["enra","cocci","tiam","ctc","sulpha"].includes(i.id));
+  M.innerHTML=meds.map(i=>{const L=LIMITS[i.id],no=L&&L[g]===0,on=isUsed(i)&&(KG[i.id]||0)>0;return `<label${no?' title="Not allowed in this stage"':''}><input type="checkbox" data-mopt="${i.id}"${on?" checked":""}${no?" disabled":""}> <span>${esc(i.n)}${no?' <span class="hint">(not for this stage)</span>':on?` <span class="hint">${fmt(KG[i.id],2)} kg</span>`:""}</span></label>`}).join("")||'<span class="hint">No medicines.</span>';
+  const nA=AUTO_IDS.filter(autoOn).length,nM=meds.filter(i=>isUsed(i)&&(KG[i.id]||0)>0).length;const sm=$("#addSum");if(sm)sm.textContent=`${nA} of ${AUTO_IDS.length} additives on · ${nM} medicine${nM===1?"":"s"} added · extra 25% ${BOOST_ON?"on":"off"}`;
+  A.querySelectorAll("[data-aopt]").forEach(cb=>cb.addEventListener("change",()=>{const id=cb.dataset.aopt;if(cb.checked)delete USE[id];else{USE[id]=false;delete KG[id]}putUse();LC_LOCK=false;buildIng();calc()}));
+  M.querySelectorAll("[data-mopt]").forEach(cb=>cb.addEventListener("change",()=>{const id=cb.dataset.mopt,set=parseFloat($("#scaleTo").value)||1050;
+    if(cb.checked){USE[id]=true;const m=(typeof MEDS!=="undefined"?MEDS:[]).find(x=>x.id===id);if(!(KG[id]>0)&&m&&m.dose>0)KG[id]=Math.round(m.dose*set/1e6*1000)/1000;putUse();buildIng();calc();
+      if(!(KG[id]>0)){const el=$("#kg_"+id);if(el){el.scrollIntoView({behavior:"smooth",block:"center"});el.focus()}const lm=$("#lcMsg");if(lm){lm.className="wtalert near";lm.textContent="Type the label dose (kg for this batch) in the highlighted kg box for "+ING.find(x=>x.id===id).n+"."}}}
+    else{USE[id]=false;delete KG[id];putUse();buildIng();calc()}}))}
+{const b=$("#boostOn");if(b){b.checked=BOOST_ON;b.addEventListener("change",()=>{BOOST_ON=b.checked;try{localStorage.setItem("ff_boost",BOOST_ON?"1":"0")}catch(e){}LC_LOCK=false;calc()})}}
 $("#lcBtn").addEventListener("click",leastCost);
 {const r=$("#roundOn");r.checked=ROUND_ON;r.addEventListener("change",()=>{ROUND_ON=r.checked;try{localStorage.setItem("ff_round",ROUND_ON?"1":"0")}catch(e){}LC_LOCK=false;calc()});}
 document.addEventListener("change",e=>{if(e.target&&e.target.matches&&e.target.matches("input[data-id]"))calc()});
