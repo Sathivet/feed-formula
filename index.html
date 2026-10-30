@@ -500,7 +500,8 @@ header.brand{display:flex;align-items:center;gap:18px}#farmLogo{width:88px;heigh
 <section data-tab="form" id="millBox">
   <h2>4. Mill batch sheet</h2>
   <div class="controls">
-    <label class="f">Total feed to make (kg)<input id="millTotal" class="num" type="number" min="0" step="50" style="width:130px"></label>
+    <label class="f">Number of batches<span style="display:flex;gap:6px;align-items:center"><button type="button" class="ghost sm" id="millMinus" aria-label="One batch less">−</button><input id="millN" class="num" type="number" min="1" step="1" style="width:80px"><button type="button" class="ghost sm" id="millPlus" aria-label="One batch more">+</button></span></label>
+    <label class="f">or total feed to make (kg)<input id="millTotal" class="num" type="number" min="0" step="50" style="width:130px"></label>
     <button id="millBtn" type="button">Print batch sheet</button>
   </div>
   <div id="millPrev"></div>
@@ -1195,7 +1196,7 @@ function showTab(t){TAB=t;try{localStorage.setItem("ff_tab",t)}catch(e){}
   try{if(t==="raw")renderRaw();if(t==="targets")renderTargets();if(t==="meds")renderMedList();if(t==="saved")renderSavedList();if(t==="prices")buildPriceList();}catch(e){const b=document.getElementById("errBar");if(b){b.style.display="block";b.textContent="Program error on this page: "+e.message+". Please send a photo of this bar."}}
   window.scrollTo({top:0})}
 showTab(TAB);buildIng();calc();
-var APP_VER="v23 · 30 Oct 2026";{const v=$("#appVer");if(v)v.textContent=APP_VER}
+var APP_VER="v24 · 30 Oct 2026";{const v=$("#appVer");if(v)v.textContent=APP_VER}
 var MARGIN=(()=>{try{const v=parseFloat(localStorage.getItem("ff_margin"));return isNaN(v)?2:v}catch(e){return 2}})();
 {const m=$("#marginIn");if(m){m.value=MARGIN;m.addEventListener("change",()=>{MARGIN=Math.min(5,Math.max(0,parseFloat(m.value)||0));m.value=MARGIN;try{localStorage.setItem("ff_margin",String(MARGIN))}catch(e){}})}}
 // price history
@@ -1211,7 +1212,7 @@ function costTrend(f){const H=PHIST.slice(-4);if(!H.length)return "";const tot=O
 {const _b=buildPriceList;buildPriceList=function(){_b.apply(this,arguments);try{renderPHist()}catch(e){}}}
 // mill batch sheet
 function millData(){const set=parseFloat($("#scaleTo").value)||1050,tot=ING.reduce((a,i)=>a+(KG[i.id]||0),0)||set;
-  let want=parseFloat(($("#millTotal")||{}).value);if(!(want>0))want=set;const n=Math.max(1,Math.ceil(want/tot-1e-9));
+  let want=parseFloat(($("#millTotal")||{}).value);if(!(want>0))want=set;const nIn=parseInt(($("#millN")||{}).value);const n=nIn>0?nIn:Math.max(1,Math.ceil(want/tot-1e-9));if(nIn>0)want=n*tot;
   const LIQ=["oil"],rows0=ING.filter(i=>(KG[i.id]||0)>0).map(i=>({id:i.id,n:i.n+(SEL[i.id]?" ("+SEL[i.id]+")":""),kg:KG[i.id]})),liq=rows0.filter(r=>LIQ.includes(r.id)),rows=rows0.filter(r=>!LIQ.includes(r.id));
   const big=rows.filter(r=>r.kg>=10).sort((a,b)=>b.kg-a.kg),small=rows.filter(r=>r.kg<10).sort((a,b)=>b.kg-a.kg);
   return {set,tot,want,n,big,small,liq,smallKg:small.reduce((a,r)=>a+r.kg,0)}}
@@ -1221,8 +1222,12 @@ function millHTML(d,print){const kg=v=>fmt(v,v<10?2:1),all=v=>fmt(v*d.n,v*d.n<10
    '<h2 style="font-size:1rem">Step 1 – Pre-mix bucket (weigh first, mix well with about 10 kg of ground maize)</h2>'+tb(d.small,1)+'<p class="hint">Pre-mix total: '+kg(d.smallKg)+' kg per batch. Add to the mixer after the main ingredients are in.</p>'+
    '<h2 style="font-size:1rem">Step 2 – Main ingredients (largest first)</h2>'+tb(d.big,d.small.length+1)+(d.liq.length?'<h2 style="font-size:1rem">Step 3 – Oil (add slowly while the mixer runs)</h2>'+tb(d.liq,d.small.length+d.big.length+1):'')+
    '<p class="hint">Mix 4–5 minutes after the last ingredient. Keep this sheet with the batch record.</p>'}
-function renderMill(){const p=$("#millPrev");if(!p)return;const t=$("#millTotal");if(t&&!t.value)t.value=$("#scaleTo").value||1050;p.innerHTML=millHTML(millData(),false)}
-{const mt=$("#millTotal");if(mt)mt.addEventListener("input",renderMill)}
+function renderMill(){const p=$("#millPrev");if(!p)return;const t=$("#millTotal");if(t&&!t.value)t.value=$("#scaleTo").value||1050;{const mn=$("#millN");if(mn&&!mn.value){const tt=ING.reduce((a,i)=>a+(KG[i.id]||0),0)||1050;mn.value=Math.max(1,Math.ceil((parseFloat(t.value)||tt)/tt-1e-9))}}p.innerHTML=millHTML(millData(),false)}
+{const mt=$("#millTotal"),mn=$("#millN"),tot0=()=>ING.reduce((a,i)=>a+(KG[i.id]||0),0)||parseFloat($("#scaleTo").value)||1050;
+ if(mt)mt.addEventListener("input",()=>{const w=parseFloat(mt.value);if(mn)mn.value=w>0?Math.max(1,Math.ceil(w/tot0()-1e-9)):"";renderMill()});
+ const setN=n=>{n=Math.max(1,n|0);mn.value=n;mt.value=Math.round(n*tot0());renderMill()};
+ if(mn){mn.addEventListener("input",()=>{const n=parseInt(mn.value);if(n>0){mt.value=Math.round(n*tot0());renderMill()}});
+  $("#millMinus").addEventListener("click",()=>setN((parseInt(mn.value)||1)-1));$("#millPlus").addEventListener("click",()=>setN((parseInt(mn.value)||0)+1))}}
 {const mb=$("#millBtn");if(mb)mb.addEventListener("click",()=>{const d=millData();let el=document.getElementById("millSheet");if(!el){el=document.createElement("div");el.id="millSheet";document.body.appendChild(el)}
   const name=(($("#pdfName")||{}).value||"Feed formula").trim();
   el.innerHTML='<img src="'+$("#farmLogo").src+'" style="width:60px;float:right" alt="">'+'<h1>Mill batch sheet – '+esc(name)+'</h1><div>'+esc(STAGES[STAGE].n)+' · Date: '+new Date().toLocaleDateString("en-IN")+' · Feed Formula '+APP_VER+'</div>'+millHTML(d,true)+'<p style="margin-top:24px">Weighed by: ____________ &nbsp;&nbsp; Checked by: ____________</p>';
