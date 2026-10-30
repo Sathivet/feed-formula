@@ -152,6 +152,7 @@ input.needprice{border:2px solid var(--high)!important;background:var(--high-bg)
 .up{color:var(--high)}.dn{color:var(--ok)}
 .addgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:4px 14px;margin-top:4px}.addgrid label{display:flex;align-items:flex-start;gap:6px;font-size:.9rem}
 .addpanel{border:1px dashed var(--line,#ccc);border-radius:8px;padding:8px 12px}.addpanel summary{cursor:pointer}
+.hlgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;margin-top:8px}.hlcard{border:1px solid var(--line,#ddd);border-radius:10px;padding:10px 14px;background:var(--surface,#fff)}.hlcard h3{margin:2px 0 6px;font-size:1rem;color:var(--ok)}.hlcard ul{margin:0;padding-left:18px}.hlcard li{margin:3px 0;font-size:.9rem;line-height:1.35}
 .wtalert{font-size:.92rem;border-radius:8px;padding:10px 12px}
 .wtalert:empty{display:none}
 .wtalert.ok{background:var(--ok-bg);color:var(--ok);font-weight:600}
@@ -211,7 +212,7 @@ header.brand{display:flex;align-items:center;gap:18px}#farmLogo{width:88px;heigh
   <button type="button" role="tab" data-go="targets">Stage targets</button>
   <button type="button" role="tab" data-go="prices">Prices</button>
   <button type="button" role="tab" data-go="saved">Saved formulas</button>
-  <button type="button" role="tab" data-go="help">Help</button>
+  <button type="button" role="tab" data-go="help">Information</button>
 </nav>
 
 <section data-tab="form">
@@ -443,7 +444,42 @@ header.brand{display:flex;align-items:center;gap:18px}#farmLogo{width:88px;heigh
 </div>
 
 <section data-tab="help" hidden>
-  <h2>Help: method</h2>
+  <h2>Highlights of our formula</h2>
+  <div class="hlgrid">
+    <div class="hlcard"><h3>Nutrient data</h3><ul>
+      <li>21 ingredients from the Skylark table: CP, ME, fibre, fat, Ca, total P, available P, lysine, methionine, M+C, threonine.</li>
+      <li>Anbu LC40 concentrate uses its lab report (fat and total P standard until the lab gives them).</li>
+      <li>Every value editable in Raw material master; your own raw materials can be added.</li></ul></div>
+    <div class="hlcard"><h3>Least-cost logic</h3><ul>
+      <li>Cheapest mix that meets every nutrient target of the stage, every material's Max %, and the batch weight.</li>
+      <li>2% safety margin above minimums (adjustable 0–5%).</li>
+      <li>Re-checks after kg rounding so nutrients stay inside target.</li>
+      <li>If 100% is not possible, applies the nearest mix and says what is short and what is blocking it.</li>
+      <li>Runs only when every ticked material with kg has a price.</li>
+      <li>Keep box and typed kg are never changed; dropped materials come back on the next run.</li></ul></div>
+    <div class="hlcard"><h3>Concentrate rules</h3><ul>
+      <li>400 kg LC40 carries vitamins, trace minerals, binder, liver tonic and choline for 1,000 kg feed; less concentrate = only the missing share is added.</li>
+      <li>DCP, salt, lysine and methionine topped up only by the shortfall.</li>
+      <li>Max concentrate: chick 10%, grower/developer 20%, pre-lay and Layer Phase 1 25%; Layer Phase 2 fixed 40%.</li></ul></div>
+    <div class="hlcard"><h3>Additives &amp; medicines</h3><ul>
+      <li>Auto-added: premix, trace mineral, liver tonic, choline, binder; Vit E+Se, Vit C, betaine chick to pre-lay; Lysoforte when oil is used.</li>
+      <li>+25% premix, trace mineral, liver tonic and choline in chick, grower, developer (switchable).</li>
+      <li>Add / not-add panel; least-cost never changes medicines; medicines blocked in stages where not allowed.</li></ul></div>
+    <div class="hlcard"><h3>Enzymes &amp; phytase</h3><ul>
+      <li>Polyzyme XAP matrix (Zeus, 500 g/t): +100 kcal, +0.8% CP, amino acids – least-cost buys less soya.</li>
+      <li>Phytase units on label → +0.10% avP, +0.10% Ca, +30 kcal at 500 FTU/kg; DCP cut about 6 kg per tonne.</li>
+      <li>Warns if phytase is counted twice; tip to add phytase when DCP is high.</li></ul></div>
+    <div class="hlcard"><h3>Layer quality rules</h3><ul>
+      <li>Shell grit at least 60% of grit + calcite in pre-lay and layer (night-time shell calcium).</li>
+      <li>Red rows with ill effects when a material is over its safe limit; analysis shows effect and fix for every nutrient out of range.</li>
+      <li>Vitamins and trace minerals checked per kg of feed.</li></ul></div>
+    <div class="hlcard"><h3>Mill &amp; records</h3><ul>
+      <li>Rounding: 10 kg and above to whole kg (DCP, calcite, grit 0.5 kg); below 10 kg to 1 decimal.</li>
+      <li>Mill batch sheet: number of batches with − / +, pre-mix bucket first, print with sign-off lines.</li>
+      <li>Saved formulas, price history with cost trend, export/import backup, PDF with Vetri Farms logo.</li></ul></div>
+  </div>
+
+  <h2 style="margin-top:22px">Help: method</h2>
   <ol class="steps">
     <li>Pick the stage. Its targets come from the breed guide.</li>
     <li>Fix the small items first: salt, DCP, grit, amino acids, binder and enzyme.</li>
@@ -1198,7 +1234,7 @@ function showTab(t){TAB=t;try{localStorage.setItem("ff_tab",t)}catch(e){}
   try{if(t==="raw")renderRaw();if(t==="targets")renderTargets();if(t==="meds")renderMedList();if(t==="saved")renderSavedList();if(t==="prices")buildPriceList();}catch(e){const b=document.getElementById("errBar");if(b){b.style.display="block";b.textContent="Program error on this page: "+e.message+". Please send a photo of this bar."}}
   window.scrollTo({top:0})}
 showTab(TAB);buildIng();calc();
-var APP_VER="v25 · 30 Oct 2026";{const v=$("#appVer");if(v)v.textContent=APP_VER}
+var APP_VER="v26 · 30 Oct 2026";{const v=$("#appVer");if(v)v.textContent=APP_VER}
 var MARGIN=(()=>{try{const v=parseFloat(localStorage.getItem("ff_margin"));return isNaN(v)?2:v}catch(e){return 2}})();
 {const m=$("#marginIn");if(m){m.value=MARGIN;m.addEventListener("change",()=>{MARGIN=Math.min(5,Math.max(0,parseFloat(m.value)||0));m.value=MARGIN;try{localStorage.setItem("ff_margin",String(MARGIN))}catch(e){}})}}
 // price history
