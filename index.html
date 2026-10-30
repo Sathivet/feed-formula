@@ -293,6 +293,16 @@ header.brand{display:flex;align-items:center;gap:18px}#farmLogo{width:88px;heigh
       <label class="f" data-show="enz phytase emul addit">adds Ca (%)
         <input id="pfCa" class="num" type="number" step="0.01" placeholder="0">
       </label>
+      <fieldset data-show="enz phytase addit" class="vitset"><legend>Enzyme matrix: what it adds to the feed at that dose (from supplier; leave 0 if not given)</legend>
+        <div class="vitgrid">
+        <label class="f">CP (%)<input id="pfXcp" class="num" type="number" step="any" placeholder="0"></label>
+        <label class="f">Lysine (%)<input id="pfXlys" class="num" type="number" step="any" placeholder="0"></label>
+        <label class="f">Methionine (%)<input id="pfXmet" class="num" type="number" step="any" placeholder="0"></label>
+        <label class="f">Met + Cys (%)<input id="pfXtsaa" class="num" type="number" step="any" placeholder="0"></label>
+        <label class="f">Threonine (%)<input id="pfXthr" class="num" type="number" step="any" placeholder="0"></label>
+        <label class="f">Sodium (%)<input id="pfXna" class="num" type="number" step="any" placeholder="0"></label>
+        </div>
+      </fieldset>
       <fieldset data-show="premix" class="vitset">
         <legend>Composition per kg of premix (as printed on the bag)</legend>
         <div class="vitgrid">
@@ -554,7 +564,7 @@ const DEFAULT_ING=[
  {id:"hipro",n:"Soya Hi Pro",cp:49,me:2525,cf:5.5,ca:0.25,avp:0.25,na:0.02,lys:2.95,k:2.2,met:0.63,d3:0,tsaa:1.3,thr:1.85,cl:0.05,la:0.4,lib:true},
  {id:"ffs",n:"Full fat soya",cp:37,me:3500,cf:5.5,ca:0.29,avp:0.24,na:0.02,lys:2.25,k:1.6,met:0.5,d3:0,tsaa:1.05,thr:1.4,cl:0.03,la:9.5,lib:true},
  {id:"csm",n:"Cotton seed meal",cp:40,me:2300,cf:18,ca:0.2,avp:0.3,na:0.05,lys:1.57,k:1.4,met:0.6,d3:0,tsaa:1.25,thr:1.3,cl:0.04,la:0.4,lib:true},
- {id:"mustard",n:"Mustard extracted",cp:37,me:2000,cf:10,ca:0.72,avp:0.25,na:0.05,lys:1.75,k:1.2,met:0.68,d3:0,tsaa:1.6,thr:1.48,cl:0.05,la:0.3,lib:true},
+ {id:"mustard",n:"Mustard / rapeseed meal (RSM)",cp:37,me:2000,cf:10,ca:0.72,avp:0.25,na:0.05,lys:1.75,k:1.2,met:0.68,d3:0,tsaa:1.6,thr:1.48,cl:0.05,la:0.3,lib:true},
  {id:"fish",n:"Fish meal",cp:50,me:2500,cf:1.0,ca:0.5,avp:1.8,na:0.6,lys:3.1,k:0.7,met:1.25,d3:0,tsaa:1.7,thr:1.85,cl:0.5,la:0.1,lib:true},
  {id:"mgm",n:"Maize gluten meal (MGM)",cp:60,me:3700,cf:2.0,ca:0.1,avp:0.2,na:0.05,lys:1.0,k:0.2,met:1.5,d3:0,tsaa:2.5,thr:2.0,cl:0.05,la:1.9,lib:true},
  {id:"rgm",n:"Rice gluten meal (RGM)",cp:45,me:3000,cf:5.0,ca:0.2,avp:0.15,na:0.05,lys:1.2,k:0.3,met:1.12,d3:0,tsaa:2.0,thr:1.6,cl:0.05,la:2.0,lib:true},
@@ -568,6 +578,7 @@ const STAGES={
  l1:{n:"Layer Phase 1 (18–40 wk)",t:{cp:[16,17],me:[2600,2800],cf:[0,6],ca:[3.9,4.3],avp:[0.42,0.48],na:[0.16,0.20],lys:[0.78,0.86],met:[0.38,0.46],k:[0.4,0.9],d3:[3000,6000],tsaa:[0.67,0.83],thr:[0.57,0.77],cl:[0.15,0.25],deb:[170,250],la:[1.4,2.5],sand:[0,0.8]}},
  l2:{n:"Layer Phase 2 (40 wk+)",t:{cp:[15.3,16.3],me:[2600,2800],cf:[0,6],ca:[4.1,4.5],avp:[0.36,0.42],na:[0.16,0.20],lys:[0.72,0.80],met:[0.36,0.44],k:[0.4,0.9],d3:[3000,6000],tsaa:[0.63,0.79],thr:[0.53,0.73],cl:[0.15,0.25],deb:[170,250],la:[1.3,2.5],sand:[0,0.8]}}};
 const PRESETS={
+ rsm:{n:"Vetri grower – RSM + phytase (28 Oct 2026)",stage:"grower",kg:{maize:512,rice:130,dorb:30,soya:266,mustard:30,calcite:13,dcp:8,dlmet:2,lysHcl:0.94,phytase:0.1,soda:1,salt:3,enz:0.5,premix:0.5,tm:0.5,betaine:0.5,liver:1,enra:0.1,vitc:0.2,vitese:0.2,choline:0.5,binder:0.5},exact:true,sel:{phytase:"Phytase-5000 (Varsha Multi Tech)",enz:"Polyzyme XAP"}},
  cm:{n:"Chick Mash (CM) 0–6 wk",stage:"chick",kg:{maize:523,rice:100,soya:349.7,sfdoc:25,oil:10,calcite:13,dcp:17.4,salt:4.3,lysHcl:0.29,dlmet:1.83,premix:0.525,tm:0.525,emul:0.525,choline:0.5,binder:1.05,liver:0.5,enz:0.42,cocci:0.5,enra:0.13,vitese:0.2,vitc:0.15}},
  d1:{n:"DORB – Layer Phase I",stage:"l1",kg:{maize:459.6,rice:100,soya:241.6,sfdoc:70,dorb:40,oil:12,calcite:33.4,grit:66.7,dcp:15.7,salt:3.3,soda:1.5,dlmet:1.13,premix:0.525,tm:0.525,emul:0.525,choline:0.5,binder:1.05,liver:0.5,enz:0.42}},
  d2:{n:"DORB – Layer Phase II",stage:"l2",kg:{maize:464.3,rice:100,soya:215,sfdoc:80,dorb:50,oil:12,calcite:34.8,grit:69.5,dcp:13.5,salt:3.0,soda:2,dlmet:0.87,premix:0.525,tm:0.525,emul:0.525,choline:0.5,binder:1.05,liver:0.5,enz:0.42}},
@@ -649,7 +660,7 @@ vitd3:[0.05,0.05,0.05,"Too much D3: calcium deposits in kidneys, kidney damage."
 betaine:[0.2,0.2,0.2,"Wasted above 2 kg per ton."],
 emul:[0.1,0.1,0.1,"Wasted above label dose (500–1000 g per ton)."],
 phytase:[0.02,0.02,0.02,"Wasted above label dose. If the P credit is counted twice, birds go short of phosphorus."],
-liver:[0.07,0.07,0.05,"Wasted above label dose (+25% allowed in young stages)."]};
+liver:[0.1,0.1,0.1,"Wasted above label dose (up to 1 kg per tonne allowed)."]};
 const LGROUP={chick:0,grower:1,dev:1,plm:2,l1:2,l2:2};
 var PREMIX_BOOST={chick:1.25,grower:1.25,dev:1.25};
 var CONC_MAX={chick:10,grower:20,dev:20,plm:25,l1:25,l2:40};
@@ -700,7 +711,7 @@ let PRICE=store.get("ff_price")||{};
 let STAGE=(store.get("ff_kver")===10&&store.get("ff_stage"))||"chick";store.set("ff_kver",10);
 var PCATS={lc40:"Concentrate",premix:"Vitamin–mineral premix",tm:"Trace mineral premix",vitese:"Vitamin E + Selenium",vitc:"Vitamin C",emul:"Emulsifier",addit:"Other additive",enz:"Enzyme",vitd3:"Vitamin D3",phytase:"Phytase"};
 var PRODUCTS=store.get("ff_products")||null, SEL=store.get("ff_sel")||{};
-if(!PRODUCTS){PRODUCTS={premix:[],enz:[{name:"Polyzyme XAP",dose:400,d3:0,me:0,p:0,ca:0}],tm:[],vitd3:[],phytase:[]};SEL.enz=SEL.enz||"Polyzyme XAP";
+if(!PRODUCTS){PRODUCTS={premix:[],enz:[{name:"Polyzyme XAP",dose:500,d3:0,me:100,p:0,ca:0,mx:{cp:0.8,lys:0.025,met:0.0066,tsaa:0.0222,thr:0.04}}],tm:[],vitd3:[],phytase:[]};SEL.enz=SEL.enz||"Polyzyme XAP";
   try{const b=localStorage.getItem("ff_pmbrand");const pm=ING.find(i=>i.id==="premix");if(b&&pm&&pm.d3){PRODUCTS.premix.push({name:b,dose:0,d3:pm.d3,me:0,p:0,ca:0});SEL.premix=b}}catch(e){}}
 const $=s=>document.querySelector(s);
 
@@ -1131,7 +1142,7 @@ function showTab(t){TAB=t;try{localStorage.setItem("ff_tab",t)}catch(e){}
   try{if(t==="raw")renderRaw();if(t==="targets")renderTargets();if(t==="meds")renderMedList();if(t==="saved")renderSavedList();if(t==="prices")buildPriceList();}catch(e){const b=document.getElementById("errBar");if(b){b.style.display="block";b.textContent="Program error on this page: "+e.message+". Please send a photo of this bar."}}
   window.scrollTo({top:0})}
 showTab(TAB);buildIng();calc();
-var APP_VER="v16 · 27 Oct 2026";{const v=$("#appVer");if(v)v.textContent=APP_VER}
+var APP_VER="v19 · 28 Oct 2026";{const v=$("#appVer");if(v)v.textContent=APP_VER}
 var MARGIN=(()=>{try{const v=parseFloat(localStorage.getItem("ff_margin"));return isNaN(v)?2:v}catch(e){return 2}})();
 {const m=$("#marginIn");if(m){m.value=MARGIN;m.addEventListener("change",()=>{MARGIN=Math.min(5,Math.max(0,parseFloat(m.value)||0));m.value=MARGIN;try{localStorage.setItem("ff_margin",String(MARGIN))}catch(e){}})}}
 // price history
@@ -1209,7 +1220,13 @@ $("#medForm").addEventListener("submit",e=>{e.preventDefault();
 });
 $("#lcUndo").addEventListener("click",()=>{LC_LOCK=false;if(LC_UNDO){KG={...LC_UNDO};LC_UNDO=null;buildIng();calc();$("#lcUndo").hidden=true;$("#lcMsg").textContent="Previous mix restored."}});
 $("#autoAdd").addEventListener("change",e=>{AUTO_ON=e.target.checked;try{localStorage.setItem("ff_auto",AUTO_ON?"1":"0")}catch(x){}if(!AUTO_ON)autoOff();calc()});
-$("#loadBtn").addEventListener("click",()=>{LC_LOCK=false;const v=$("#preset").value;if(v.startsWith("saved:")){loadSaved(+v.split(":")[1]);return}const p=PRESETS[v];KG={...p.kg};STAGE=p.stage;$("#stage").value=STAGE;buildIng();calc()});
+$("#loadBtn").addEventListener("click",()=>{LC_LOCK=false;const v=$("#preset").value;if(v.startsWith("saved:")){loadSaved(+v.split(":")[1]);return}const p=PRESETS[v];KG={...p.kg};STAGE=p.stage;$("#stage").value=STAGE;
+  if(p.exact){Object.keys(p.kg).forEach(k=>USE[k]=true);try{localStorage.setItem("ff_use",JSON.stringify(USE))}catch(e){}
+    for(const [c,n] of Object.entries(p.sel||{}))if((PRODUCTS[c]||[]).find(x=>x.name===n))applyProduct(c,n,false);
+    $("#scaleTo").value=Math.round(Object.values(p.kg).reduce((a,x)=>a+x,0)*100)/100;LAST_SET=parseFloat($("#scaleTo").value);
+    AUTO_ON=false;$("#autoAdd").checked=false;try{localStorage.setItem("ff_auto","0")}catch(e){}autoOff();LC_LOCK=true;
+    buildIng();calc();const m=$("#lcMsg");if(m){m.className="wtalert near";m.textContent="Loaded exactly as written. Automatic additives are switched off so your kg stay as they are; tick 'Add vitamins, minerals and additives automatically' to let the app recalculate them."}return}
+  buildIng();calc()});
 $("#clearBtn").addEventListener("click",()=>{KG={};buildIng();calc()});
 var LAST_SET=parseFloat($("#scaleTo").value)||1050;
 $("#scaleTo").addEventListener("change",()=>{const nw=parseFloat($("#scaleTo").value)||0;
@@ -1223,7 +1240,7 @@ function applyProduct(cat,name,setKg){
   const pr=(PRODUCTS[cat]||[]).find(x=>x.name===name), ing=ING.find(i=>i.id===cat); if(!pr||!ing)return;
   const per=v=>pr.dose>0?v*1e6/pr.dose:0;
   if(cat==="lc40"&&pr.nut){Object.assign(ing,pr.nut,{vit:null,min:null,d3:0});SEL[cat]=name;if(pr.price)PRICE[cat]=pr.price;if(setKg&&pr.dose>0){const set=parseFloat($("#scaleTo").value)||1000;const cap=(CONC_MAX[STAGE]||100)/100*set;KG[cat]=Math.round(Math.min(pr.dose*set/1e6,cap)*100)/100}saveProds();return}
-  Object.assign(ing,{vit:pr.vit?{...pr.vit}:null,min:pr.min?{...pr.min}:null,cp:0,cf:0,na:0,lys:0,met:0,k:0,d3:(cat==="premix"&&pr.vit)?(pr.vit.vD3||0)*1e6:(pr.d3||0),me:per((pr.me||0)+(pr.ftu>0&&!(pr.p>0)?phyMatrix(pr.ftu*pr.dose/1000).me:0)),avp:per(pr.p>0?pr.p:(pr.ftu>0?phyMatrix(pr.ftu*pr.dose/1000).p:0)),ca:per(pr.ca>0?pr.ca:(pr.ftu>0?phyMatrix(pr.ftu*pr.dose/1000).ca:0))});
+  Object.assign(ing,{vit:pr.vit?{...pr.vit}:null,min:pr.min?{...pr.min}:null,cp:per((pr.mx||{}).cp||0),cf:0,na:per((pr.mx||{}).na||0),lys:per((pr.mx||{}).lys||0),met:per((pr.mx||{}).met||0),tsaa:per((pr.mx||{}).tsaa||0),thr:per((pr.mx||{}).thr||0),k:0,d3:(cat==="premix"&&pr.vit)?(pr.vit.vD3||0)*1e6:(pr.d3||0),me:per((pr.me||0)+(pr.ftu>0&&!(pr.p>0)?phyMatrix(pr.ftu*pr.dose/1000).me:0)),avp:per(pr.p>0?pr.p:(pr.ftu>0?phyMatrix(pr.ftu*pr.dose/1000).p:0)),ca:per(pr.ca>0?pr.ca:(pr.ftu>0?phyMatrix(pr.ftu*pr.dose/1000).ca:0))});
   SEL[cat]=name;if(pr.price)PRICE[cat]=pr.price;
   if(setKg&&pr.dose>0){const set=parseFloat($("#scaleTo").value)||1000;KG[cat]=Math.round(pr.dose*set/1e6*1000)/1000}
   saveProds();
@@ -1237,7 +1254,7 @@ function esc(t){return String(t).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;","
 function renderProdList(){
   const rows=[];
   for(const [cat,label] of Object.entries(PCATS))for(const p of PRODUCTS[cat]||[]){
-    const bits=[p.nut?`${p.dose/1000} kg/t, CP ${p.nut.cp}%`+(p.has?` · contains ${[p.has.vit&&"vitamins",p.has.tm&&"trace minerals",p.has.binder&&"toxin binder"].filter(Boolean).join(", ")||"no premixes"}`:""):p.dose?`${p.dose} g/t`:"",p.min&&p.min.mZn?`Zn ${p.min.mZn} g, Mn ${p.min.mMn||0} g, Se ${p.min.mSe||0} mg`:"",p.min&&!p.min.mZn&&p.min.mSe?`E ${(p.vit&&p.vit.vE)||0} g, Se ${p.min.mSe} mg, biotin ${(p.vit&&p.vit.vBio)||0} mg per kg`:"",p.vit&&p.vit.vC?`Vitamin C ${p.vit.vC/10}%`:"",p.vit&&p.vit.vD3?`A ${p.vit.vA||0} MIU, D3 ${p.vit.vD3} MIU, E ${p.vit.vE||0} g`:"",p.d3?`D3 ${fmt(p.d3,0)} IU/kg`:"",p.price?`₹${p.price}/kg`:"",p.me?`+${p.me} kcal`:"",p.ftu?`phytase ${p.ftu} FTU/g → ${fmt(p.ftu*p.dose/1000,0)} FTU/kg feed`+(p.p?"":` (credit +${fmt(phyMatrix(p.ftu*p.dose/1000).p,2)}% avP, +${fmt(phyMatrix(p.ftu*p.dose/1000).ca,2)}% Ca, +${fmt(phyMatrix(p.ftu*p.dose/1000).me,0)} kcal)`):"",p.p?`+${p.p}% avP`:"",p.ca?`+${p.ca}% Ca`:""].filter(Boolean).join(" · ");
+    const bits=[p.nut?`${p.dose/1000} kg/t, CP ${p.nut.cp}%`+(p.has?` · contains ${[p.has.vit&&"vitamins",p.has.tm&&"trace minerals",p.has.binder&&"toxin binder"].filter(Boolean).join(", ")||"no premixes"}`:""):p.dose?`${p.dose} g/t`:"",p.min&&p.min.mZn?`Zn ${p.min.mZn} g, Mn ${p.min.mMn||0} g, Se ${p.min.mSe||0} mg`:"",p.min&&!p.min.mZn&&p.min.mSe?`E ${(p.vit&&p.vit.vE)||0} g, Se ${p.min.mSe} mg, biotin ${(p.vit&&p.vit.vBio)||0} mg per kg`:"",p.vit&&p.vit.vC?`Vitamin C ${p.vit.vC/10}%`:"",p.vit&&p.vit.vD3?`A ${p.vit.vA||0} MIU, D3 ${p.vit.vD3} MIU, E ${p.vit.vE||0} g`:"",p.d3?`D3 ${fmt(p.d3,0)} IU/kg`:"",p.price?`₹${p.price}/kg`:"",p.me?`+${p.me} kcal`:"",p.ftu?`phytase ${p.ftu} FTU/g → ${fmt(p.ftu*p.dose/1000,0)} FTU/kg feed`+(p.p?"":` (credit +${fmt(phyMatrix(p.ftu*p.dose/1000).p,2)}% avP, +${fmt(phyMatrix(p.ftu*p.dose/1000).ca,2)}% Ca, +${fmt(phyMatrix(p.ftu*p.dose/1000).me,0)} kcal)`):"",p.mx?"matrix: "+Object.entries(p.mx).filter(([k,v])=>v).map(([k,v])=>`+${v}% ${({cp:"CP",lys:"Lys",met:"Met",tsaa:"M+C",thr:"Thr",na:"Na"})[k]}`).join(", "):"",p.p?`+${p.p}% avP`:"",p.ca?`+${p.ca}% Ca`:""].filter(Boolean).join(" · ");
     rows.push(`<div class="pitem"><div><b>${esc(p.name)}</b> <span class="hint">${label}${bits?" · "+bits:""}</span></div><button type="button" class="ghost sm" data-del="${cat}|${esc(p.name)}">Delete</button></div>`)}
   $("#prodList").innerHTML=rows.join("")||`<p class="hint">No brands saved yet.</p>`;
   $("#prodList").querySelectorAll("[data-del]").forEach(btn=>btn.addEventListener("click",()=>{
@@ -1252,17 +1269,18 @@ $("#prodForm").addEventListener("submit",e=>{e.preventDefault();
   const cat=$("#pfCat").value,name=$("#pfName").value.trim();if(!name){$("#pfMsg").textContent="Enter the brand name.";return}
   const num=id=>parseFloat($(id).value)||0;
   const p={name,dose:num("#pfDose"),d3:num("#pfD3"),me:num("#pfMe"),p:num("#pfP"),ca:num("#pfCa"),ftu:num("#pfFtu"),price:num("#pfPrice")};
+  {const x={cp:num("#pfXcp"),lys:num("#pfXlys"),met:num("#pfXmet"),tsaa:num("#pfXtsaa"),thr:num("#pfXthr"),na:num("#pfXna")};if(Object.values(x).some(v=>v))p.mx=x}
   if(p.ftu>0&&!p.dose){$("#pfMsg").textContent="Enter the label dose (g per ton) so the phytase level in feed can be worked out.";return}
   if(cat==="lc40"){p.dose=num("#pk_rate")*1000;p.nut={};["cp", "me", "cf", "ca", "avp", "na", "k", "cl", "lys", "met", "tsaa", "thr", "sand"].forEach(k=>p.nut[k]=num("#pk_"+k));p.has={vit:$("#pk_hasVit").checked,tm:$("#pk_hasTm").checked,binder:$("#pk_hasBinder").checked}}
   if(cat==="tm"){p.min={};["mZn", "mFe", "mCu", "mSe", "mMn", "mCr", "mI"].forEach(k=>p.min[k]=num("#pm_"+k))}
   if(cat==="vitese"){p.vit={vE:num("#pe_vE"),vBio:num("#pe_vBio")};p.min={mSe:num("#pe_mSe")}}
   if(cat==="vitc"){p.vit={vC:num("#pc_C")*10}}
   if(cat==="premix"){p.vit={};["vA", "vD3", "vE", "vK3", "vB1", "vB2", "vB6", "vB12", "vNia", "vPan", "vFol", "vBio"].forEach(k=>p.vit[k]=num("#pv_"+k))}
-  if((p.me||p.p||p.ca)&&!p.dose){$("#pfMsg").textContent="Enter the label dose (g per ton) so the ME, P and Ca values can be worked out.";return}
+  if((p.me||p.p||p.ca||p.mx)&&!p.dose){$("#pfMsg").textContent="Enter the label dose (g per ton) so the ME, P and Ca values can be worked out.";return}
   PRODUCTS[cat]=(PRODUCTS[cat]||[]).filter(x=>x.name!==name);PRODUCTS[cat].push(p);
   applyProduct(cat,name,!(KG[cat]>0));saveProds();renderProdList();buildIng();buildVals();calc();
   $("#pfMsg").textContent=`Saved ${name} as ${PCATS[cat]} and selected it in the table.`;
-  ["#pfName","#pfDose","#pfD3","#pfMe","#pfP","#pfCa","#pfFtu","#pfPrice","#pv_vA","#pv_vD3","#pv_vE","#pv_vK3","#pv_vB1","#pv_vB2","#pv_vB6","#pv_vB12","#pv_vNia","#pv_vPan","#pv_vFol","#pv_vBio","#pm_mZn","#pm_mFe","#pm_mCu","#pm_mSe","#pm_mMn","#pm_mCr","#pm_mI","#pe_vE","#pe_mSe","#pe_vBio","#pc_C","#pk_cp","#pk_me","#pk_cf","#pk_ca","#pk_avp","#pk_na","#pk_k","#pk_cl","#pk_lys","#pk_met","#pk_tsaa","#pk_thr","#pk_sand","#pk_rate"].forEach(id=>$(id).value="");
+  ["#pfName","#pfDose","#pfD3","#pfMe","#pfP","#pfCa","#pfFtu","#pfXcp","#pfXlys","#pfXmet","#pfXtsaa","#pfXthr","#pfXna","#pfPrice","#pv_vA","#pv_vD3","#pv_vE","#pv_vK3","#pv_vB1","#pv_vB2","#pv_vB6","#pv_vB12","#pv_vNia","#pv_vPan","#pv_vFol","#pv_vBio","#pm_mZn","#pm_mFe","#pm_mCu","#pm_mSe","#pm_mMn","#pm_mCr","#pm_mI","#pe_vE","#pe_mSe","#pe_vBio","#pc_C","#pk_cp","#pk_me","#pk_cf","#pk_ca","#pk_avp","#pk_na","#pk_k","#pk_cl","#pk_lys","#pk_met","#pk_tsaa","#pk_thr","#pk_sand","#pk_rate"].forEach(id=>$(id).value="");
 });
 renderProdList();buildIng();calc();
 
@@ -1356,6 +1374,9 @@ if(!store.get("ff_seed_conc")){
   const lc={name:"Anbu Godrej LC40 (lab 04/07/25)",dose:400000,price:0,nut:{cp:28.8,me:2000,cf:9.94,ca:3.06,avp:0.7,na:0.307,k:1.0,cl:0.5,lys:1.2,met:0.5,tsaa:0.9,thr:1.0,sand:2.91},has:{vit:true,tm:true,binder:true}};
   PRODUCTS.lc40=(PRODUCTS.lc40||[]).filter(x=>x.name!==lc.name);PRODUCTS.lc40.push(lc);
   saveProds();store.set("ff_seed_conc",1);renderProdList();buildIng();}
+if(!store.get("ff_seed_xapmx")){ // Zeus Biotech matrix sheet ZBPL/RD/2023/RV-4: values at 500 g per tonne
+  const x={name:"Polyzyme XAP",dose:500,d3:0,me:100,p:0,ca:0,mx:{cp:0.8,lys:0.025,met:0.0066,tsaa:0.0222,thr:0.04}};PRODUCTS.enz=(PRODUCTS.enz||[]).filter(p=>p.name!==x.name);PRODUCTS.enz.push(x);
+  if(!SEL.enz||SEL.enz===x.name)applyProduct("enz",x.name,false);saveProds();store.set("ff_seed_xapmx",1);renderProdList();buildIng();}
 if(!store.get("ff_seed_phy")){
   const v={name:"Phytase-5000 (Varsha Multi Tech)",dose:100,d3:0,me:0,p:0,ca:0,ftu:5000,price:270};
   const a={name:"Phytase 5000 IU (ABT Corporation)",dose:100,d3:0,me:0,p:0,ca:0,ftu:5000};
