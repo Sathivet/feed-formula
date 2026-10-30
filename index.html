@@ -348,6 +348,8 @@ header.brand{display:flex;align-items:center;gap:18px}#farmLogo{width:88px;heigh
           <label class="f">Met + Cys %<input id="pk_tsaa" class="num" type="number" step="0.01"></label>
           <label class="f">Threonine %<input id="pk_thr" class="num" type="number" step="0.01"></label>
           <label class="f">Sand / silica %<input id="pk_sand" class="num" type="number" step="0.01"></label>
+          <label class="f">Fat % (lab; blank = standard 2.5)<input id="pk_fat" class="num" type="number" step="0.01"></label>
+          <label class="f">Total P % (lab; blank = standard 1.2)<input id="pk_tp" class="num" type="number" step="0.01"></label>
         </div>
         <div class="controls" style="margin-top:8px">
           <label class="f" style="flex-direction:row;align-items:center;gap:6px"><input type="checkbox" id="pk_hasVit" checked> Contains vitamins</label>
@@ -535,54 +537,54 @@ const NUTS=[
  {k:"ca",n:"Calcium",u:"%",d:2},{k:"avp",n:"Available P",u:"%",d:2},{k:"na",n:"Sodium",u:"%",d:3},
  {k:"lys",n:"Lysine",u:"%",d:2},{k:"met",n:"Methionine",u:"%",d:2},{k:"k",n:"Potassium (K)",u:"%",d:2},{k:"d3",n:"Vitamin D3",u:" IU/kg",d:0},{k:"tsaa",n:"Methionine + cystine",u:"%",d:2},{k:"thr",n:"Threonine",u:"%",d:2},{k:"cl",n:"Chloride",u:"%",d:3},{k:"deb",n:"Electrolyte balance (Na+K−Cl)",u:" mEq/kg",d:0,calc:true},{k:"la",n:"Linoleic acid",u:"%",d:2},{k:"sand",n:"Sand / silica",u:"%",d:2}];
 const DEFAULT_ING=[
- {id:"maize",n:"Maize",cp:8.3,me:3300,cf:3.5,ca:0.08,avp:0.1,na:0.02,lys:0.24,k:0.3,met:0.16,d3:0,tsaa:0.26,thr:0.4,cl:0.05,la:1.9},
- {id:"rice",n:"Broken rice",cp:7.5,me:2900,cf:3.0,ca:0.04,avp:0.05,na:0.02,lys:0.2,k:0.1,met:0.14,d3:0,tsaa:0.23,thr:0.3,cl:0.07,la:0.6},
- {id:"soya",n:"Soya meal",cp:45,me:2300,cf:6.0,ca:0.29,avp:0.27,na:0.02,lys:2.75,k:2.0,met:0.6,d3:0,tsaa:1.3,thr:1.85,cl:0.05,la:0.4},
- {id:"lc40",n:"Concentrate",sand:2.91,cp:28.8,me:2000,cf:9.94,ca:3.06,avp:0.7,na:0.307,lys:1.2,k:1.0,met:0.5,d3:0,tsaa:0.9,thr:1.0,cl:0.5,la:0.3},
- {id:"gn",n:"GN cake (GNC)",cp:40,me:2700,cf:9.0,ca:0.16,avp:0.16,na:0.03,lys:1.32,k:1.2,met:0.42,d3:0,tsaa:0.95,thr:1.0,cl:0.03,la:2.4},
- {id:"sfdoc",n:"Sunflower DOC",cp:28,me:1800,cf:26,ca:0.37,avp:0.3,na:0.02,lys:1.0,k:1.1,met:0.6,d3:0,tsaa:1.1,thr:1.15,cl:0.1,la:0.6},
- {id:"dorb",n:"DORB",cp:14,me:1700,cf:14,ca:0.1,avp:0.25,na:0.03,lys:0.65,k:1.2,met:0.32,d3:0,tsaa:0.6,thr:0.6,cl:0.07,la:0.4},
- {id:"oil",n:"Soya oil",cp:0,me:8800,cf:0,ca:0,avp:0,na:0,lys:0,k:0,met:0,d3:0,tsaa:0,thr:0,cl:0,la:52},
- {id:"grit",n:"Shell grit / limestone",cp:0,me:0,cf:0,ca:38,avp:0,na:0,lys:0,k:0,met:0,d3:0,tsaa:0,thr:0,cl:0,la:0},
- {id:"dcp",n:"DCP",cp:0,me:0,cf:0,ca:23,avp:18,na:0,lys:0,k:0,met:0,d3:0,tsaa:0,thr:0,cl:0,la:0},
- {id:"salt",n:"Salt",cp:0,me:0,cf:0,ca:0,avp:0,na:39.3,lys:0,k:0,met:0,d3:0,tsaa:0,thr:0,cl:60.7,la:0},
- {id:"lysHcl",n:"L-Lysine HCl",cp:0,me:0,cf:0,ca:0,avp:0,na:0,lys:78,k:0,met:0,d3:0,tsaa:0,thr:0,cl:19.4,la:0},
- {id:"dlmet",n:"DL-Methionine",cp:0,me:0,cf:0,ca:0,avp:0,na:0,lys:0,k:0,met:99,d3:0,tsaa:99,thr:0,cl:0,la:0},
- {id:"binder",n:"Toxin binder",cp:0,me:0,cf:0,ca:0,avp:0,na:0,lys:0,k:0,met:0,d3:0,tsaa:0,thr:0,cl:0,la:0},
- {id:"enz",n:"Enzyme",cp:0,me:0,cf:0,ca:0,avp:0,na:0,lys:0,k:0,met:0,d3:0,tsaa:0,thr:0,cl:0,la:0},
- {id:"calcite",n:"Calcite (powder)",cp:0,me:0,cf:0,ca:38,avp:0,na:0,lys:0,k:0,met:0,d3:0,tsaa:0,thr:0,cl:0,la:0},
- {id:"soda",n:"Soda salt (NaHCO₃)",cp:0,me:0,cf:0,ca:0,avp:0,na:27,lys:0,k:0,met:0,d3:0,tsaa:0,thr:0,cl:0,la:0},
- {id:"choline",n:"Choline chloride",cp:0,me:0,cf:0,ca:0,avp:0,na:0,lys:0,k:0,met:0,d3:0,tsaa:0,thr:0,cl:15,la:0},
- {id:"vitese",n:"Vitamin E + Selenium",cp:0,me:0,cf:0,ca:0,avp:0,na:0,lys:0,k:0,met:0,d3:0,tsaa:0,thr:0,cl:0,la:0},
- {id:"vitc",n:"Vitamin C (coated)",cp:0,me:0,cf:0,ca:0,avp:0,na:0,lys:0,k:0,met:0,d3:0,tsaa:0,thr:0,cl:0,la:0},
- {id:"tiam",n:"Tiamulin 10% (vet only)",cp:0,me:0,cf:0,ca:0,avp:0,na:0,lys:0,k:0,met:0,d3:0,tsaa:0,thr:0,cl:0,la:0},
- {id:"ctc",n:"CTC 15% (vet only)",cp:0,me:0,cf:0,ca:0,avp:0,na:0,lys:0,k:0,met:0,d3:0,tsaa:0,thr:0,cl:0,la:0},
- {id:"sulpha",n:"Sulpha (vet only)",cp:0,me:0,cf:0,ca:0,avp:0,na:0,lys:0,k:0,met:0,d3:0,tsaa:0,thr:0,cl:0,la:0},
- {id:"enra",n:"Enramycin 8%",cp:0,me:0,cf:0,ca:0,avp:0,na:0,lys:0,k:0,met:0,d3:0,tsaa:0,thr:0,cl:0,la:0},
- {id:"cocci",n:"Coccidiostat",cp:0,me:0,cf:0,ca:0,avp:0,na:0,lys:0,k:0,met:0,d3:0,tsaa:0,thr:0,cl:0,la:0},
- {id:"premix",n:"Vitamin–mineral premix",cp:0,me:0,cf:0,ca:0,avp:0,na:0,lys:0,k:0,met:0,d3:0,tsaa:0,thr:0,cl:0,la:0},
- {id:"tm",n:"Trace mineral premix",cp:0,me:0,cf:0,ca:0,avp:0,na:0,lys:0,k:0,met:0,d3:0,tsaa:0,thr:0,cl:0,la:0},
- {id:"vitd3",n:"Vitamin D3",cp:0,me:0,cf:0,ca:0,avp:0,na:0,lys:0,k:0,met:0,d3:0,tsaa:0,thr:0,cl:0,la:0},
- {id:"phytase",n:"Phytase",cp:0,me:0,cf:0,ca:0,avp:0,na:0,lys:0,k:0,met:0,d3:0,tsaa:0,thr:0,cl:0,la:0},
- {id:"betaine",n:"Betaine",cp:0,me:0,cf:0,ca:0,avp:0,na:0,lys:0,k:0,met:0,d3:0,tsaa:0,thr:0,cl:0,la:0},
- {id:"emul",n:"Emulsifier",cp:0,me:0,cf:0,ca:0,avp:0,na:0,lys:0,k:0,met:0,d3:0,tsaa:0,thr:0,cl:0,la:0},
- {id:"addit",n:"Other additive",cp:0,me:0,cf:0,ca:0,avp:0,na:0,lys:0,k:0,met:0,d3:0,tsaa:0,thr:0,cl:0,la:0},
- {id:"liver",n:"Liver tonic",cp:0,me:0,cf:0,ca:0,avp:0,na:0,lys:0,k:0,met:0,d3:0,tsaa:0,thr:0,cl:0,la:0},
- {id:"jowar",n:"Jowar",cp:8.8,me:3100,cf:4.0,ca:0.03,avp:0.1,na:0.02,lys:0.21,k:0.35,met:0.15,d3:0,tsaa:0.32,thr:0.3,cl:0.09,la:1.1,lib:true},
- {id:"wheat",n:"Wheat",cp:12,me:3000,cf:3.5,ca:0.1,avp:0.2,na:0.02,lys:0.31,k:0.4,met:0.15,d3:0,tsaa:0.46,thr:0.35,cl:0.07,la:0.6,lib:true},
- {id:"bajra",n:"Bajra",cp:9.5,me:3000,cf:4.0,ca:0.1,avp:0.2,na:0.02,lys:0.26,k:0.45,met:0.2,d3:0,tsaa:0.3,thr:0.35,cl:0.05,la:2.0,lib:true},
- {id:"ricepol",n:"Rice polish",cp:13,me:2700,cf:8.0,ca:0.09,avp:0.22,na:0.03,lys:0.6,k:1.1,met:0.26,d3:0,tsaa:0.5,thr:0.5,cl:0.07,la:5.6,lib:true},
- {id:"gne",n:"GN extraction (GNE)",cp:42,me:2500,cf:10.0,ca:0.2,avp:0.19,na:0.03,lys:1.4,k:1.2,met:0.46,d3:0,tsaa:1.0,thr:1.09,cl:0.03,la:0.3,lib:true},
- {id:"mbm",n:"Meat & bone meal",cp:43,me:2500,cf:1.0,ca:12.0,avp:4.5,na:0.6,lys:1.9,k:1.4,met:0.45,d3:0,tsaa:0.85,thr:1.15,cl:0.7,la:0.3,lib:true},
- {id:"hipro",n:"Soya Hi Pro",cp:49,me:2525,cf:5.5,ca:0.25,avp:0.25,na:0.02,lys:2.95,k:2.2,met:0.63,d3:0,tsaa:1.3,thr:1.85,cl:0.05,la:0.4,lib:true},
- {id:"ffs",n:"Full fat soya",cp:37,me:3500,cf:5.5,ca:0.29,avp:0.24,na:0.02,lys:2.25,k:1.6,met:0.5,d3:0,tsaa:1.05,thr:1.4,cl:0.03,la:9.5,lib:true},
- {id:"csm",n:"Cotton seed meal",cp:40,me:2300,cf:18,ca:0.2,avp:0.3,na:0.05,lys:1.57,k:1.4,met:0.6,d3:0,tsaa:1.25,thr:1.3,cl:0.04,la:0.4,lib:true},
- {id:"mustard",n:"Mustard / rapeseed meal (RSM)",cp:37,me:2000,cf:10,ca:0.72,avp:0.25,na:0.05,lys:1.75,k:1.2,met:0.68,d3:0,tsaa:1.6,thr:1.48,cl:0.05,la:0.3,lib:true},
- {id:"fish",n:"Fish meal",cp:50,me:2500,cf:1.0,ca:0.5,avp:1.8,na:0.6,lys:3.1,k:0.7,met:1.25,d3:0,tsaa:1.7,thr:1.85,cl:0.5,la:0.1,lib:true},
- {id:"mgm",n:"Maize gluten meal (MGM)",cp:60,me:3700,cf:2.0,ca:0.1,avp:0.2,na:0.05,lys:1.0,k:0.2,met:1.5,d3:0,tsaa:2.5,thr:2.0,cl:0.05,la:1.9,lib:true},
- {id:"rgm",n:"Rice gluten meal (RGM)",cp:45,me:3000,cf:5.0,ca:0.2,avp:0.15,na:0.05,lys:1.2,k:0.3,met:1.12,d3:0,tsaa:2.0,thr:1.6,cl:0.05,la:2.0,lib:true},
- {id:"guar",n:"Guar korma",cp:48,me:2500,cf:6.0,ca:0.1,avp:0.2,na:0.05,lys:1.96,k:1.1,met:0.51,d3:0,tsaa:1.07,thr:1.35,cl:0.05,la:1.0,lib:true},
- {id:"ddgs",n:"DDGS",cp:45,me:2500,cf:4.0,ca:0.1,avp:0.05,na:0.15,lys:1.3,k:0.9,met:0.86,d3:0,tsaa:1.6,thr:1.6,cl:0.15,la:1.6,lib:true}];
+ {id:"maize",n:"Maize",fat:3.8,tp:0.28,cp:8.3,me:3300,cf:3.5,ca:0.08,avp:0.1,na:0.02,lys:0.24,k:0.3,met:0.16,d3:0,tsaa:0.26,thr:0.4,cl:0.05,la:1.9},
+ {id:"rice",n:"Broken rice",fat:2.0,tp:0.18,cp:7.5,me:2900,cf:3.0,ca:0.04,avp:0.05,na:0.02,lys:0.2,k:0.1,met:0.14,d3:0,tsaa:0.23,thr:0.3,cl:0.07,la:0.6},
+ {id:"soya",n:"Soya meal",fat:0.8,tp:0.65,cp:45,me:2300,cf:6.0,ca:0.29,avp:0.27,na:0.02,lys:2.75,k:2.0,met:0.6,d3:0,tsaa:1.3,thr:1.85,cl:0.05,la:0.4},
+ {id:"lc40",n:"Concentrate",fat:2.5,tp:1.2,sand:2.91,cp:28.8,me:2000,cf:9.94,ca:3.06,avp:0.7,na:0.307,lys:1.2,k:1.0,met:0.5,d3:0,tsaa:0.9,thr:1.0,cl:0.5,la:0.3},
+ {id:"gn",n:"GN cake (GNC)",fat:7.5,tp:0.56,cp:40,me:2700,cf:9.0,ca:0.16,avp:0.16,na:0.03,lys:1.32,k:1.2,met:0.42,d3:0,tsaa:0.95,thr:1.0,cl:0.03,la:2.4},
+ {id:"sfdoc",n:"Sunflower DOC",fat:1.0,tp:1.0,cp:28,me:1800,cf:26,ca:0.37,avp:0.3,na:0.02,lys:1.0,k:1.1,met:0.6,d3:0,tsaa:1.1,thr:1.15,cl:0.1,la:0.6},
+ {id:"dorb",n:"DORB",fat:1.0,tp:1.3,cp:14,me:1700,cf:14,ca:0.1,avp:0.25,na:0.03,lys:0.65,k:1.2,met:0.32,d3:0,tsaa:0.6,thr:0.6,cl:0.07,la:0.4},
+ {id:"oil",n:"Soya oil",fat:99.5,tp:0,cp:0,me:8800,cf:0,ca:0,avp:0,na:0,lys:0,k:0,met:0,d3:0,tsaa:0,thr:0,cl:0,la:52},
+ {id:"grit",n:"Shell grit / limestone",fat:0,tp:0,cp:0,me:0,cf:0,ca:38,avp:0,na:0,lys:0,k:0,met:0,d3:0,tsaa:0,thr:0,cl:0,la:0},
+ {id:"dcp",n:"DCP",fat:0,tp:18.0,cp:0,me:0,cf:0,ca:23,avp:18,na:0,lys:0,k:0,met:0,d3:0,tsaa:0,thr:0,cl:0,la:0},
+ {id:"salt",n:"Salt",fat:0,tp:0,cp:0,me:0,cf:0,ca:0,avp:0,na:39.3,lys:0,k:0,met:0,d3:0,tsaa:0,thr:0,cl:60.7,la:0},
+ {id:"lysHcl",n:"L-Lysine HCl",fat:0,tp:0,cp:0,me:0,cf:0,ca:0,avp:0,na:0,lys:78,k:0,met:0,d3:0,tsaa:0,thr:0,cl:19.4,la:0},
+ {id:"dlmet",n:"DL-Methionine",fat:0,tp:0,cp:0,me:0,cf:0,ca:0,avp:0,na:0,lys:0,k:0,met:99,d3:0,tsaa:99,thr:0,cl:0,la:0},
+ {id:"binder",n:"Toxin binder",fat:0,tp:0,cp:0,me:0,cf:0,ca:0,avp:0,na:0,lys:0,k:0,met:0,d3:0,tsaa:0,thr:0,cl:0,la:0},
+ {id:"enz",n:"Enzyme",fat:0,tp:0,cp:0,me:0,cf:0,ca:0,avp:0,na:0,lys:0,k:0,met:0,d3:0,tsaa:0,thr:0,cl:0,la:0},
+ {id:"calcite",n:"Calcite (powder)",fat:0,tp:0,cp:0,me:0,cf:0,ca:38,avp:0,na:0,lys:0,k:0,met:0,d3:0,tsaa:0,thr:0,cl:0,la:0},
+ {id:"soda",n:"Soda salt (NaHCO₃)",fat:0,tp:0,cp:0,me:0,cf:0,ca:0,avp:0,na:27,lys:0,k:0,met:0,d3:0,tsaa:0,thr:0,cl:0,la:0},
+ {id:"choline",n:"Choline chloride",fat:0,tp:0,cp:0,me:0,cf:0,ca:0,avp:0,na:0,lys:0,k:0,met:0,d3:0,tsaa:0,thr:0,cl:15,la:0},
+ {id:"vitese",n:"Vitamin E + Selenium",fat:0,tp:0,cp:0,me:0,cf:0,ca:0,avp:0,na:0,lys:0,k:0,met:0,d3:0,tsaa:0,thr:0,cl:0,la:0},
+ {id:"vitc",n:"Vitamin C (coated)",fat:0,tp:0,cp:0,me:0,cf:0,ca:0,avp:0,na:0,lys:0,k:0,met:0,d3:0,tsaa:0,thr:0,cl:0,la:0},
+ {id:"tiam",n:"Tiamulin 10% (vet only)",fat:0,tp:0,cp:0,me:0,cf:0,ca:0,avp:0,na:0,lys:0,k:0,met:0,d3:0,tsaa:0,thr:0,cl:0,la:0},
+ {id:"ctc",n:"CTC 15% (vet only)",fat:0,tp:0,cp:0,me:0,cf:0,ca:0,avp:0,na:0,lys:0,k:0,met:0,d3:0,tsaa:0,thr:0,cl:0,la:0},
+ {id:"sulpha",n:"Sulpha (vet only)",fat:0,tp:0,cp:0,me:0,cf:0,ca:0,avp:0,na:0,lys:0,k:0,met:0,d3:0,tsaa:0,thr:0,cl:0,la:0},
+ {id:"enra",n:"Enramycin 8%",fat:0,tp:0,cp:0,me:0,cf:0,ca:0,avp:0,na:0,lys:0,k:0,met:0,d3:0,tsaa:0,thr:0,cl:0,la:0},
+ {id:"cocci",n:"Coccidiostat",fat:0,tp:0,cp:0,me:0,cf:0,ca:0,avp:0,na:0,lys:0,k:0,met:0,d3:0,tsaa:0,thr:0,cl:0,la:0},
+ {id:"premix",n:"Vitamin–mineral premix",fat:0,tp:0,cp:0,me:0,cf:0,ca:0,avp:0,na:0,lys:0,k:0,met:0,d3:0,tsaa:0,thr:0,cl:0,la:0},
+ {id:"tm",n:"Trace mineral premix",fat:0,tp:0,cp:0,me:0,cf:0,ca:0,avp:0,na:0,lys:0,k:0,met:0,d3:0,tsaa:0,thr:0,cl:0,la:0},
+ {id:"vitd3",n:"Vitamin D3",fat:0,tp:0,cp:0,me:0,cf:0,ca:0,avp:0,na:0,lys:0,k:0,met:0,d3:0,tsaa:0,thr:0,cl:0,la:0},
+ {id:"phytase",n:"Phytase",fat:0,tp:0,cp:0,me:0,cf:0,ca:0,avp:0,na:0,lys:0,k:0,met:0,d3:0,tsaa:0,thr:0,cl:0,la:0},
+ {id:"betaine",n:"Betaine",fat:0,tp:0,cp:0,me:0,cf:0,ca:0,avp:0,na:0,lys:0,k:0,met:0,d3:0,tsaa:0,thr:0,cl:0,la:0},
+ {id:"emul",n:"Emulsifier",fat:0,tp:0,cp:0,me:0,cf:0,ca:0,avp:0,na:0,lys:0,k:0,met:0,d3:0,tsaa:0,thr:0,cl:0,la:0},
+ {id:"addit",n:"Other additive",fat:0,tp:0,cp:0,me:0,cf:0,ca:0,avp:0,na:0,lys:0,k:0,met:0,d3:0,tsaa:0,thr:0,cl:0,la:0},
+ {id:"liver",n:"Liver tonic",fat:0,tp:0,cp:0,me:0,cf:0,ca:0,avp:0,na:0,lys:0,k:0,met:0,d3:0,tsaa:0,thr:0,cl:0,la:0},
+ {id:"jowar",n:"Jowar",fat:3.0,tp:0.28,cp:8.8,me:3100,cf:4.0,ca:0.03,avp:0.1,na:0.02,lys:0.21,k:0.35,met:0.15,d3:0,tsaa:0.32,thr:0.3,cl:0.09,la:1.1,lib:true},
+ {id:"wheat",n:"Wheat",fat:2.5,tp:0.5,cp:12,me:3000,cf:3.5,ca:0.1,avp:0.2,na:0.02,lys:0.31,k:0.4,met:0.15,d3:0,tsaa:0.46,thr:0.35,cl:0.07,la:0.6,lib:true},
+ {id:"bajra",n:"Bajra",fat:5.0,tp:0.5,cp:9.5,me:3000,cf:4.0,ca:0.1,avp:0.2,na:0.02,lys:0.26,k:0.45,met:0.2,d3:0,tsaa:0.3,thr:0.35,cl:0.05,la:2.0,lib:true},
+ {id:"ricepol",n:"Rice polish",fat:16.0,tp:1.52,cp:13,me:2700,cf:8.0,ca:0.09,avp:0.22,na:0.03,lys:0.6,k:1.1,met:0.26,d3:0,tsaa:0.5,thr:0.5,cl:0.07,la:5.6,lib:true},
+ {id:"gne",n:"GN extraction (GNE)",fat:1.0,tp:0.65,cp:42,me:2500,cf:10.0,ca:0.2,avp:0.19,na:0.03,lys:1.4,k:1.2,met:0.46,d3:0,tsaa:1.0,thr:1.09,cl:0.03,la:0.3,lib:true},
+ {id:"mbm",n:"Meat & bone meal",fat:8.0,tp:5.0,cp:43,me:2500,cf:1.0,ca:12.0,avp:4.5,na:0.6,lys:1.9,k:1.4,met:0.45,d3:0,tsaa:0.85,thr:1.15,cl:0.7,la:0.3,lib:true},
+ {id:"hipro",n:"Soya Hi Pro",fat:0.8,tp:0.62,cp:49,me:2525,cf:5.5,ca:0.25,avp:0.25,na:0.02,lys:2.95,k:2.2,met:0.63,d3:0,tsaa:1.3,thr:1.85,cl:0.05,la:0.4,lib:true},
+ {id:"ffs",n:"Full fat soya",fat:18.0,tp:0.58,cp:37,me:3500,cf:5.5,ca:0.29,avp:0.24,na:0.02,lys:2.25,k:1.6,met:0.5,d3:0,tsaa:1.05,thr:1.4,cl:0.03,la:9.5,lib:true},
+ {id:"csm",n:"Cotton seed meal",fat:1.0,tp:0.9,cp:40,me:2300,cf:18,ca:0.2,avp:0.3,na:0.05,lys:1.57,k:1.4,met:0.6,d3:0,tsaa:1.25,thr:1.3,cl:0.04,la:0.4,lib:true},
+ {id:"mustard",n:"Mustard / rapeseed meal (RSM)",fat:1.0,tp:1.09,cp:37,me:2000,cf:10,ca:0.72,avp:0.25,na:0.05,lys:1.75,k:1.2,met:0.68,d3:0,tsaa:1.6,thr:1.48,cl:0.05,la:0.3,lib:true},
+ {id:"fish",n:"Fish meal",fat:6.0,tp:2.0,cp:50,me:2500,cf:1.0,ca:0.5,avp:1.8,na:0.6,lys:3.1,k:0.7,met:1.25,d3:0,tsaa:1.7,thr:1.85,cl:0.5,la:0.1,lib:true},
+ {id:"mgm",n:"Maize gluten meal (MGM)",fat:4.0,tp:0.5,cp:60,me:3700,cf:2.0,ca:0.1,avp:0.2,na:0.05,lys:1.0,k:0.2,met:1.5,d3:0,tsaa:2.5,thr:2.0,cl:0.05,la:1.9,lib:true},
+ {id:"rgm",n:"Rice gluten meal (RGM)",fat:6.0,tp:0.45,cp:45,me:3000,cf:5.0,ca:0.2,avp:0.15,na:0.05,lys:1.2,k:0.3,met:1.12,d3:0,tsaa:2.0,thr:1.6,cl:0.05,la:2.0,lib:true},
+ {id:"guar",n:"Guar korma",fat:6.0,tp:0.5,cp:48,me:2500,cf:6.0,ca:0.1,avp:0.2,na:0.05,lys:1.96,k:1.1,met:0.51,d3:0,tsaa:1.07,thr:1.35,cl:0.05,la:1.0,lib:true},
+ {id:"ddgs",n:"DDGS",fat:3.0,tp:0.15,cp:45,me:2500,cf:4.0,ca:0.1,avp:0.05,na:0.15,lys:1.3,k:0.9,met:0.86,d3:0,tsaa:1.6,thr:1.6,cl:0.15,la:1.6,lib:true}];
 const STAGES={
  grower:{n:"Grower 6–10 wk",t:{cp:[17,18],me:[2650,2800],cf:[3,5],ca:[0.95,1.1],avp:[0.40,0.46],na:[0.15,0.19],lys:[0.82,0.90],met:[0.36,0.44],k:[0.4,0.9],d3:[2500,5000],tsaa:[0.67,0.85],thr:[0.65,0.85],cl:[0.15,0.28],deb:[170,250],la:[1.0,2.5],sand:[0,0.8]}},
  dev:{n:"Developer 10–16 wk",t:{cp:[15,16.2],me:[2650,2800],cf:[3,6],ca:[0.9,1.15],avp:[0.38,0.44],na:[0.15,0.19],lys:[0.68,0.76],met:[0.31,0.38],k:[0.4,0.9],d3:[2500,5000],tsaa:[0.58,0.75],thr:[0.55,0.75],cl:[0.15,0.28],deb:[170,250],la:[1.0,2.5],sand:[0,0.8]}},
@@ -1044,7 +1046,7 @@ function calc(){
       ${status!=="ok"?`<div class="effect"><b>Ill effect:</b> ${((LGROUP[STAGE]??2)<2&&EFFECTS_YOUNG[n.k]&&EFFECTS_YOUNG[n.k][status])||EFFECTS[n.k][status]}</div><div class="tip"><b>Fix:</b> ${TIPS[n.k][status]}</div>`:""}
     </div>`}).join("");
   const perKg=costKnown&&tot?cost/tot:null;const unpricedN=ING.filter(i=>(KG[i.id]||0)>0&&!(PRICE[i.id]>0)).length;
-  const VR=renderVits(tot)||{ok:0,n:0},MR=renderMins(tot)||{ok:0,n:0};$("#summary").innerHTML=`<span>Batch <b>${fmt(tot,1)} kg</b></span><span>On target <b>${okCount+VR.ok+MR.ok}/${NUTS.length+VR.n+MR.n}</b></span>${perKg?`<span>Cost <b>₹${fmt(perKg,2)}/kg</b>${unpricedN?` <span style="color:var(--low)">(partial: ${unpricedN} item${unpricedN>1?"s":""} without price)</span>`:""}</span>`:`<span>Enter ₹/kg to see cost</span>`}`;
+  const VR=renderVits(tot)||{ok:0,n:0},MR=renderMins(tot)||{ok:0,n:0};$("#summary").innerHTML=`<span>Batch <b>${fmt(tot,1)} kg</b></span><span>Fat <b>${fmt(nv("fat",tot),2)}%</b></span><span>Total P <b>${fmt(nv("tp",tot),2)}%</b></span><span>On target <b>${okCount+VR.ok+MR.ok}/${NUTS.length+VR.n+MR.n}</b></span>${perKg?`<span>Cost <b>₹${fmt(perKg,2)}/kg</b>${unpricedN?` <span style="color:var(--low)">(partial: ${unpricedN} item${unpricedN>1?"s":""} without price)</span>`:""}</span>`:`<span>Enter ₹/kg to see cost</span>`}`;
   try{renderAddOpts()}catch(e){}try{phistTouch()}catch(e){}try{renderMill()}catch(e){}
   store.set("ff_kg",KG);store.set("ff_price",PRICE);store.set("ff_ing",ING);store.set("ff_stage",STAGE);
   try{lcStatus()}catch(e){}
@@ -1121,7 +1123,7 @@ function buildPriceList(){
 $("#priceBox").addEventListener("toggle",()=>{if($("#priceBox").open)buildPriceList()});
 
 /* ===== Software shell: tabs + masters ===== */
-var NUT_EDIT=NUTS.filter(n=>!n.calc&&n.k!=="d3");
+var NUT_EDIT=NUTS.filter(n=>!n.calc&&n.k!=="d3").concat([{k:"fat",n:"Fat",u:"%",d:1},{k:"tp",n:"Total P",u:"%",d:2}]);
 var DEF_LIMITS=JSON.parse(JSON.stringify(LIMITS));
 var DEF_STAGES=JSON.parse(JSON.stringify(STAGES));
 var DEF_OPTS={CONC_MAX:{...CONC_MAX},CONC_MIN:{...CONC_MIN},PREMIX_BOOST:{...PREMIX_BOOST}};
@@ -1136,7 +1138,7 @@ const getJ=k=>{try{return JSON.parse(localStorage.getItem(k))}catch(e){return nu
 const saveLimits=()=>{const o={};for(const [id,v] of Object.entries(LIMITS))if(!DEF_LIMITS[id]||JSON.stringify(v.slice(0,3))!==JSON.stringify(DEF_LIMITS[id].slice(0,3)))o[id]=v.slice(0,3);putJ("ff_limits",o)};
 const isFeedRaw=i=>!i.med&&!(PCATS&&PCATS[i.id])&&(i.raw||NUT_EDIT.some(n=>(i[n.k]||0)!==0));
 function renderRaw(){
-  const heads=NUT_EDIT.map(n=>`<th>${n.k==="me"?"ME":n.k==="tsaa"?"M+C":n.k==="la"?"Linoleic":n.k.toUpperCase()}</th>`).join("");
+  const heads=NUT_EDIT.map(n=>`<th>${n.k==="fat"?"Fat %":n.k==="tp"?"Total P %":n.k==="me"?"ME":n.k==="tsaa"?"M+C":n.k==="la"?"Linoleic":n.k.toUpperCase()}</th>`).join("");
   $("#rawTable thead").innerHTML=`<tr><th>Raw material</th>${heads}<th>Max % chick</th><th>Max % grower</th><th>Max % layer</th><th></th></tr>`;
   $("#rawTable tbody").innerHTML=ING.filter(isFeedRaw).map(i=>{const L=LIMITS[i.id]||[null,null,null];
     return `<tr><td class="name">${i.raw?`<input type="text" data-rn="${i.id}" value="${esc(i.n)}">`:esc(i.n)}</td>${NUT_EDIT.map(n=>`<td><input class="num" type="number" step="0.01" data-rv="${i.id}|${n.k}" value="${i[n.k]??0}"></td>`).join("")}
@@ -1196,7 +1198,7 @@ function showTab(t){TAB=t;try{localStorage.setItem("ff_tab",t)}catch(e){}
   try{if(t==="raw")renderRaw();if(t==="targets")renderTargets();if(t==="meds")renderMedList();if(t==="saved")renderSavedList();if(t==="prices")buildPriceList();}catch(e){const b=document.getElementById("errBar");if(b){b.style.display="block";b.textContent="Program error on this page: "+e.message+". Please send a photo of this bar."}}
   window.scrollTo({top:0})}
 showTab(TAB);buildIng();calc();
-var APP_VER="v24 · 30 Oct 2026";{const v=$("#appVer");if(v)v.textContent=APP_VER}
+var APP_VER="v25 · 30 Oct 2026";{const v=$("#appVer");if(v)v.textContent=APP_VER}
 var MARGIN=(()=>{try{const v=parseFloat(localStorage.getItem("ff_margin"));return isNaN(v)?2:v}catch(e){return 2}})();
 {const m=$("#marginIn");if(m){m.value=MARGIN;m.addEventListener("change",()=>{MARGIN=Math.min(5,Math.max(0,parseFloat(m.value)||0));m.value=MARGIN;try{localStorage.setItem("ff_margin",String(MARGIN))}catch(e){}})}}
 // price history
@@ -1330,7 +1332,7 @@ $("#prodForm").addEventListener("submit",e=>{e.preventDefault();
   const p={name,dose:num("#pfDose"),d3:num("#pfD3"),me:num("#pfMe"),p:num("#pfP"),ca:num("#pfCa"),ftu:num("#pfFtu"),price:num("#pfPrice")};
   {const x={cp:num("#pfXcp"),lys:num("#pfXlys"),met:num("#pfXmet"),tsaa:num("#pfXtsaa"),thr:num("#pfXthr"),na:num("#pfXna")};if(Object.values(x).some(v=>v))p.mx=x}
   if(p.ftu>0&&!p.dose){$("#pfMsg").textContent="Enter the label dose (g per ton) so the phytase level in feed can be worked out.";return}
-  if(cat==="lc40"){p.dose=num("#pk_rate")*1000;p.nut={};["cp", "me", "cf", "ca", "avp", "na", "k", "cl", "lys", "met", "tsaa", "thr", "sand"].forEach(k=>p.nut[k]=num("#pk_"+k));p.has={vit:$("#pk_hasVit").checked,tm:$("#pk_hasTm").checked,binder:$("#pk_hasBinder").checked}}
+  if(cat==="lc40"){p.dose=num("#pk_rate")*1000;p.nut={};["cp", "me", "cf", "ca", "avp", "na", "k", "cl", "lys", "met", "tsaa", "thr", "sand"].forEach(k=>p.nut[k]=num("#pk_"+k));p.nut.fat=num("#pk_fat")||2.5;p.nut.tp=num("#pk_tp")||1.2;p.has={vit:$("#pk_hasVit").checked,tm:$("#pk_hasTm").checked,binder:$("#pk_hasBinder").checked}}
   if(cat==="tm"){p.min={};["mZn", "mFe", "mCu", "mSe", "mMn", "mCr", "mI"].forEach(k=>p.min[k]=num("#pm_"+k))}
   if(cat==="vitese"){p.vit={vE:num("#pe_vE"),vBio:num("#pe_vBio")};p.min={mSe:num("#pe_mSe")}}
   if(cat==="vitc"){p.vit={vC:num("#pc_C")*10}}
@@ -1339,7 +1341,7 @@ $("#prodForm").addEventListener("submit",e=>{e.preventDefault();
   PRODUCTS[cat]=(PRODUCTS[cat]||[]).filter(x=>x.name!==name);PRODUCTS[cat].push(p);
   applyProduct(cat,name,!(KG[cat]>0));saveProds();renderProdList();buildIng();buildVals();calc();
   $("#pfMsg").textContent=`Saved ${name} as ${PCATS[cat]} and selected it in the table.`;
-  ["#pfName","#pfDose","#pfD3","#pfMe","#pfP","#pfCa","#pfFtu","#pfXcp","#pfXlys","#pfXmet","#pfXtsaa","#pfXthr","#pfXna","#pfPrice","#pv_vA","#pv_vD3","#pv_vE","#pv_vK3","#pv_vB1","#pv_vB2","#pv_vB6","#pv_vB12","#pv_vNia","#pv_vPan","#pv_vFol","#pv_vBio","#pm_mZn","#pm_mFe","#pm_mCu","#pm_mSe","#pm_mMn","#pm_mCr","#pm_mI","#pe_vE","#pe_mSe","#pe_vBio","#pc_C","#pk_cp","#pk_me","#pk_cf","#pk_ca","#pk_avp","#pk_na","#pk_k","#pk_cl","#pk_lys","#pk_met","#pk_tsaa","#pk_thr","#pk_sand","#pk_rate"].forEach(id=>$(id).value="");
+  ["#pfName","#pfDose","#pfD3","#pfMe","#pfP","#pfCa","#pfFtu","#pfXcp","#pfXlys","#pfXmet","#pfXtsaa","#pfXthr","#pfXna","#pfPrice","#pv_vA","#pv_vD3","#pv_vE","#pv_vK3","#pv_vB1","#pv_vB2","#pv_vB6","#pv_vB12","#pv_vNia","#pv_vPan","#pv_vFol","#pv_vBio","#pm_mZn","#pm_mFe","#pm_mCu","#pm_mSe","#pm_mMn","#pm_mCr","#pm_mI","#pe_vE","#pe_mSe","#pe_vBio","#pc_C","#pk_cp","#pk_me","#pk_cf","#pk_ca","#pk_avp","#pk_na","#pk_k","#pk_cl","#pk_lys","#pk_met","#pk_tsaa","#pk_thr","#pk_sand","#pk_fat","#pk_tp","#pk_rate"].forEach(id=>$(id).value="");
 });
 renderProdList();buildIng();calc();
 
