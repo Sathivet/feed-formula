@@ -354,6 +354,7 @@ header.brand{display:flex;align-items:center;gap:18px}#farmLogo{width:88px;heigh
           <label class="f" style="flex-direction:row;align-items:center;gap:6px"><input type="checkbox" id="pk_hasVit" checked> Contains vitamins</label>
           <label class="f" style="flex-direction:row;align-items:center;gap:6px"><input type="checkbox" id="pk_hasTm" checked> Contains trace minerals</label>
           <label class="f" style="flex-direction:row;align-items:center;gap:6px"><input type="checkbox" id="pk_hasBinder" checked> Contains toxin binder</label>
+          <label class="f" style="flex-direction:row;align-items:center;gap:6px"><input type="checkbox" id="pk_hasEnz"> Contains enzyme</label>
         </div>
         <p class="hint">Lysine, methionine, sodium and potassium count from the values above. Ticked items are not added again automatically while the concentrate is used at 90% or more of its inclusion rate.</p>
       </fieldset>
@@ -448,7 +449,7 @@ header.brand{display:flex;align-items:center;gap:18px}#farmLogo{width:88px;heigh
       <li>21 ingredients from the Skylark table: CP, ME, fibre, fat, Ca, total P, available P, lysine, methionine, M+C, threonine.</li>
       <li>L-Threonine (98%) available for least-cost (tick it and enter its price).</li>
       <li>Corrected on 1 Nov 2026 where your W-80 and integration sheets agree: maize M+C 0.34, Thr 0.29, Ca 0.02; broken rice CP 9, ME 3,150, avP 0.085; DORB ME 2,000; DCP avP 16; calcite and grit Ca 36; soda Na 24; SF DOC Na 0.2; concentrate (no brand) CP 28 as in the W-80 sheet.</li>
-      <li>Layer Concentrate Crumble (W-80 sheet) added to the concentrate list: CP 28, ME 2,159, CF 9.13, Ca 3.0, avP 1.14, total P 1.35, fat 1.83, Na 0.55, K 1.48, Cl 0.89, Lys 1.673, Met 0.663, M+C 1.126, Thr 1.009, linoleic 0.93. The Phase 2 “concentrate fixed at 40%” rule applies only to LC40; with the crumble, least-cost chooses the amount.</li>
+      <li>Layer Concentrate Crumble (W-80 sheet) added to the concentrate list: CP 28, ME 2,159, CF 9.13, Ca 3.0, avP 1.14, total P 1.35, fat 1.83, Na 0.55, K 1.48, Cl 0.89, Lys 1.673, Met 0.663, M+C 1.126, Thr 1.009, linoleic 0.93. The Phase 2 “concentrate fixed at 40%” rule applies only to LC40; with the crumble, least-cost chooses the amount. Its full rate is 400 kg per tonne: at 259 kg it supplies 65% of premix, trace minerals, liver tonic and choline, and the app adds the other 35%. The crumble counts for vitamin premix, trace minerals, toxin binder, enzyme, liver tonic and choline; enzyme is now added automatically at 400 g per tonne (your usual 0.42 kg per 1,050 kg) like the premixes; type your own kg to change it. Toxin binder is added at 500 g per tonne.</li>
       <li>Anbu LC40 concentrate uses its lab report (fat and total P standard until the lab gives them).</li>
       <li>Every value editable in Raw material master; your own raw materials can be added.</li></ul></div>
     <div class="hlcard"><h3>Least-cost logic</h3><ul>
@@ -834,7 +835,7 @@ function buildVals(){
 }
 
 var AUTO_ON=(()=>{try{return localStorage.getItem("ff_auto")!=="0"}catch(e){return true}})();
-var AUTO_IDS=["premix","tm","liver","choline","binder","vitese","vitc","betaine","emul"];
+var AUTO_IDS=["premix","tm","liver","choline","binder","enz","vitese","vitc","betaine","emul"];
 
 function concInfo(){
   if(!(KG.lc40>0))return null;
@@ -879,7 +880,7 @@ function autoAdd(){
   const CI=concInfo(),cv=CI&&CI.full;
   const rest=has=>{if(!(CI&&has))return 1;const r=1-CI.frac;return r<0.1?0:r};
   const boost=BOOST_ON?(PREMIX_BOOST[STAGE]||1):1;
-  const g={premix:pd("premix",500)*boost*rest(CI&&CI.has.vit),tm:pd("tm",500)*boost*rest(CI&&CI.has.tm),liver:500*boost*rest(!!CI),choline:500*boost*rest(!!CI),binder:1000*rest(CI&&CI.has.binder),
+  const g={premix:pd("premix",500)*boost*rest(CI&&CI.has.vit),tm:pd("tm",500)*boost*rest(CI&&CI.has.tm),liver:500*boost*rest(!!CI),choline:500*boost*rest(!!CI),binder:500*rest(CI&&CI.has.binder),enz:400*rest(CI&&CI.has.enz),
     vitese:young?pd("vitese",200):0,vitc:young?pd("vitc",150):0,betaine:young?1000:0,
     emul:(KG.oil||0)>0?pd("emul",500):0};
   for(const id of AUTO_IDS){if(MANUAL.includes(id)&&USE[id]!==false)continue;if(USE[id]===false)g[id]=0;const kg=Math.round(g[id]*set/1e6*1000)/1000;if(kg>0)KG[id]=kg;else delete KG[id];
@@ -1079,7 +1080,7 @@ function calc(){
    else if(max===0){t="Not for this stage";cls="mute"}
    else if(isUsed(i)&&!(kg>0)&&!AUTO_IDS.includes(i.id)&&!(BAL_IDS||[]).includes(i.id)&&!(PCATS&&PCATS[i.id])&&!(max===0)){t=PRICE[i.id]>0?"Ticked, 0 kg: type kg (and tick Keep in the Keep column), or least-cost adds it only if it lowers cost":"Ticked, 0 kg: type kg here, or add a price for least-cost";cls="warn2"}
    else if(!(kg>0)){
-     if(AUTO_IDS.includes(i.id)&&AUTO_ON){t=(CI&&((i.id==="premix"&&CI.has.vit)||(i.id==="tm"&&CI.has.tm)||(i.id==="binder"&&CI.has.binder)||["liver","choline"].includes(i.id)))?"0: covered by concentrate":(i.id==="emul"?"0: added only when oil is used":["vitese","vitc","betaine"].includes(i.id)?"0: chick to pre-lay only":"0: auto");cls="mute"}
+     if(AUTO_IDS.includes(i.id)&&AUTO_ON){t=(CI&&((i.id==="premix"&&CI.has.vit)||(i.id==="tm"&&CI.has.tm)||(i.id==="binder"&&CI.has.binder)||(i.id==="enz"&&CI.has.enz)||["liver","choline"].includes(i.id)))?"0: covered by concentrate":(i.id==="emul"?"0: added only when oil is used":["vitese","vitc","betaine"].includes(i.id)?"0: chick to pre-lay only":"0: auto");cls="mute"}
      else if(BAL_IDS.includes(i.id)&&CI){t="0: concentrate already supplies enough";cls="mute"}
      else if(PCATS[i.id]&&!SEL[i.id]){t="No kg: choose a brand or type kg";cls="warn2"}
      else{t="No kg entered";cls="mute"}}
@@ -1451,7 +1452,7 @@ function esc(t){return String(t).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;","
 function renderProdList(){
   const rows=[];
   for(const [cat,label] of Object.entries(PCATS))for(const p of PRODUCTS[cat]||[]){
-    const bits=[p.nut?`${p.dose/1000} kg/t, CP ${p.nut.cp}%`+(p.has?` · contains ${[p.has.vit&&"vitamins",p.has.tm&&"trace minerals",p.has.binder&&"toxin binder"].filter(Boolean).join(", ")||"no premixes"}`:""):p.dose?`${p.dose} g/t`:"",p.min&&p.min.mZn?`Zn ${p.min.mZn} g, Mn ${p.min.mMn||0} g, Se ${p.min.mSe||0} mg`:"",p.min&&!p.min.mZn&&p.min.mSe?`E ${(p.vit&&p.vit.vE)||0} g, Se ${p.min.mSe} mg, biotin ${(p.vit&&p.vit.vBio)||0} mg per kg`:"",p.vit&&p.vit.vC?`Vitamin C ${p.vit.vC/10}%`:"",p.vit&&p.vit.vD3?`A ${p.vit.vA||0} MIU, D3 ${p.vit.vD3} MIU, E ${p.vit.vE||0} g`:"",p.d3?`D3 ${fmt(p.d3,0)} IU/kg`:"",p.price?`₹${p.price}/kg`:"",p.me?`+${p.me} kcal`:"",p.ftu?`phytase ${p.ftu} FTU/g → ${fmt(p.ftu*p.dose/1000,0)} FTU/kg feed`+(p.p?"":` (credit +${fmt(phyMatrix(p.ftu*p.dose/1000).p,2)}% avP, +${fmt(phyMatrix(p.ftu*p.dose/1000).ca,2)}% Ca, +${fmt(phyMatrix(p.ftu*p.dose/1000).me,0)} kcal)`):"",p.mx?"matrix: "+Object.entries(p.mx).filter(([k,v])=>v).map(([k,v])=>`+${v}% ${({cp:"CP",lys:"Lys",met:"Met",tsaa:"M+C",thr:"Thr",na:"Na"})[k]}`).join(", "):"",p.p?`+${p.p}% avP`:"",p.ca?`+${p.ca}% Ca`:""].filter(Boolean).join(" · ");
+    const bits=[p.nut?`${p.dose/1000} kg/t, CP ${p.nut.cp}%`+(p.has?` · contains ${[p.has.vit&&"vitamins",p.has.tm&&"trace minerals",p.has.binder&&"toxin binder",p.has.enz&&"enzyme"].filter(Boolean).join(", ")||"no premixes"}`:""):p.dose?`${p.dose} g/t`:"",p.min&&p.min.mZn?`Zn ${p.min.mZn} g, Mn ${p.min.mMn||0} g, Se ${p.min.mSe||0} mg`:"",p.min&&!p.min.mZn&&p.min.mSe?`E ${(p.vit&&p.vit.vE)||0} g, Se ${p.min.mSe} mg, biotin ${(p.vit&&p.vit.vBio)||0} mg per kg`:"",p.vit&&p.vit.vC?`Vitamin C ${p.vit.vC/10}%`:"",p.vit&&p.vit.vD3?`A ${p.vit.vA||0} MIU, D3 ${p.vit.vD3} MIU, E ${p.vit.vE||0} g`:"",p.d3?`D3 ${fmt(p.d3,0)} IU/kg`:"",p.price?`₹${p.price}/kg`:"",p.me?`+${p.me} kcal`:"",p.ftu?`phytase ${p.ftu} FTU/g → ${fmt(p.ftu*p.dose/1000,0)} FTU/kg feed`+(p.p?"":` (credit +${fmt(phyMatrix(p.ftu*p.dose/1000).p,2)}% avP, +${fmt(phyMatrix(p.ftu*p.dose/1000).ca,2)}% Ca, +${fmt(phyMatrix(p.ftu*p.dose/1000).me,0)} kcal)`):"",p.mx?"matrix: "+Object.entries(p.mx).filter(([k,v])=>v).map(([k,v])=>`+${v}% ${({cp:"CP",lys:"Lys",met:"Met",tsaa:"M+C",thr:"Thr",na:"Na"})[k]}`).join(", "):"",p.p?`+${p.p}% avP`:"",p.ca?`+${p.ca}% Ca`:""].filter(Boolean).join(" · ");
     rows.push(`<div class="pitem"><div><b>${esc(p.name)}</b> <span class="hint">${label}${bits?" · "+bits:""}</span></div><button type="button" class="ghost sm" data-del="${cat}|${esc(p.name)}">Delete</button></div>`)}
   $("#prodList").innerHTML=rows.join("")||`<p class="hint">No brands saved yet.</p>`;
   $("#prodList").querySelectorAll("[data-del]").forEach(btn=>btn.addEventListener("click",()=>{
@@ -1468,7 +1469,7 @@ $("#prodForm").addEventListener("submit",e=>{e.preventDefault();
   const p={name,dose:num("#pfDose"),d3:num("#pfD3"),me:num("#pfMe"),p:num("#pfP"),ca:num("#pfCa"),ftu:num("#pfFtu"),price:num("#pfPrice")};
   {const x={cp:num("#pfXcp"),lys:num("#pfXlys"),met:num("#pfXmet"),tsaa:num("#pfXtsaa"),thr:num("#pfXthr"),na:num("#pfXna")};if(Object.values(x).some(v=>v))p.mx=x}
   if(p.ftu>0&&!p.dose){$("#pfMsg").textContent="Enter the label dose (g per ton) so the phytase level in feed can be worked out.";return}
-  if(cat==="lc40"){p.dose=num("#pk_rate")*1000;p.nut={};["cp", "me", "cf", "ca", "avp", "na", "k", "cl", "lys", "met", "tsaa", "thr", "sand"].forEach(k=>p.nut[k]=num("#pk_"+k));p.nut.fat=num("#pk_fat")||2.5;p.nut.tp=num("#pk_tp")||1.2;p.has={vit:$("#pk_hasVit").checked,tm:$("#pk_hasTm").checked,binder:$("#pk_hasBinder").checked}}
+  if(cat==="lc40"){p.dose=num("#pk_rate")*1000;p.nut={};["cp", "me", "cf", "ca", "avp", "na", "k", "cl", "lys", "met", "tsaa", "thr", "sand"].forEach(k=>p.nut[k]=num("#pk_"+k));p.nut.fat=num("#pk_fat")||2.5;p.nut.tp=num("#pk_tp")||1.2;p.has={vit:$("#pk_hasVit").checked,tm:$("#pk_hasTm").checked,binder:$("#pk_hasBinder").checked,enz:$("#pk_hasEnz").checked}}
   if(cat==="tm"){p.min={};["mZn", "mFe", "mCu", "mSe", "mMn", "mCr", "mI"].forEach(k=>p.min[k]=num("#pm_"+k))}
   if(cat==="vitese"){p.vit={vE:num("#pe_vE"),vBio:num("#pe_vBio")};p.min={mSe:num("#pe_mSe")}}
   if(cat==="vitc"){p.vit={vC:num("#pc_C")*10}}
@@ -1572,9 +1573,11 @@ if(!store.get("ff_seed_conc")){
   PRODUCTS.lc40=(PRODUCTS.lc40||[]).filter(x=>x.name!==lc.name);PRODUCTS.lc40.push(lc);
   saveProds();store.set("ff_seed_conc",1);renderProdList();buildIng();}
 if(!store.get("ff_seed_lcc")){ // W-80 sheet: Layer Concentrate Crumble
-  const c={name:"Layer Concentrate Crumble (W-80 sheet)",dose:0,price:0,nut:{cp:28,me:2159,cf:9.13,ca:3.0,avp:1.14,na:0.55,k:1.482,cl:0.89,lys:1.673,met:0.663,tsaa:1.126,thr:1.009,sand:0,fat:1.83,tp:1.35,la:0.928},has:{vit:true,tm:true,binder:false}};
+  const c={name:"Layer Concentrate Crumble (W-80 sheet)",dose:400000,price:0,nut:{cp:28,me:2159,cf:9.13,ca:3.0,avp:1.14,na:0.55,k:1.482,cl:0.89,lys:1.673,met:0.663,tsaa:1.126,thr:1.009,sand:0,fat:1.83,tp:1.35,la:0.928},has:{vit:true,tm:true,binder:true,enz:true}};
   PRODUCTS.lc40=(PRODUCTS.lc40||[]).filter(x=>x.name!==c.name);PRODUCTS.lc40.push(c);
   saveProds();store.set("ff_seed_lcc",1);renderProdList();buildIng();}
+if(!store.get("ff_seed_lcc3")){const c=(PRODUCTS.lc40||[]).find(x=>x.name==="Layer Concentrate Crumble (W-80 sheet)");if(c&&c.has){c.has.binder=true;c.has.enz=true;saveProds();renderProdList()}store.set("ff_seed_lcc3",1);calc()}
+if(!store.get("ff_seed_lcc2")){const c=(PRODUCTS.lc40||[]).find(x=>x.name==="Layer Concentrate Crumble (W-80 sheet)");if(c&&!(c.dose>0)){c.dose=400000;saveProds();renderProdList()}store.set("ff_seed_lcc2",1);calc()}
 if(!store.get("ff_seed_xapmx")){ // Zeus Biotech matrix sheet ZBPL/RD/2023/RV-4: values at 500 g per tonne
   const x={name:"Polyzyme XAP",dose:500,d3:0,me:100,p:0,ca:0,mx:{cp:0.8,lys:0.025,met:0.0066,tsaa:0.0222,thr:0.04}};PRODUCTS.enz=(PRODUCTS.enz||[]).filter(p=>p.name!==x.name);PRODUCTS.enz.push(x);
   if(!SEL.enz||SEL.enz===x.name)applyProduct("enz",x.name,false);saveProds();store.set("ff_seed_xapmx",1);renderProdList();buildIng();}
