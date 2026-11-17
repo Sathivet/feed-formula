@@ -409,6 +409,9 @@ header.brand{display:flex;align-items:center;gap:18px}#farmLogo{width:88px;heigh
     <button id="newMedBtn" class="ghost" type="button">+ New medicine</button>
     <button id="hideProdBtn" class="ghost" type="button">Hide My products</button>
     <button id="hideVitBtn" class="ghost" type="button">Hide vitamins & trace minerals</button>
+    <span class="reqbox" style="display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap;padding:6px 10px;border:2px solid var(--accent,#2f6b3a);border-radius:10px"><b style="font-size:.9rem">Required for least-cost:</b>
+      <label for="reqCp" style="font-size:.9rem">CP %</label><input id="reqCp" class="num" type="number" min="0" max="30" step="0.1" placeholder="e.g. 16" style="width:80px">
+      <label for="reqMe" style="font-size:.9rem">Energy (ME kcal/kg)</label><input id="reqMe" class="num" type="number" min="0" max="3500" step="10" placeholder="e.g. 2600" style="width:95px"></span>
     <button id="lcBtn" type="button">Find least-cost mix</button>
     <button id="lcUndo" class="ghost" type="button" hidden>Undo least-cost</button>
     <span class="costfit" style="display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap"><label for="tgtCost" style="font-size:.9rem">Final feed cost ₹/kg</label><input id="tgtCost" class="num" type="number" min="0" step="0.1" placeholder="e.g. 30" style="width:90px"><button id="costBtn" type="button" title="Makes the best mix that costs no more than this ₹/kg">Fit to this cost</button></span>
@@ -457,7 +460,7 @@ header.brand{display:flex;align-items:center;gap:18px}#farmLogo{width:88px;heigh
       <li>21 ingredients from the Skylark table: CP, ME, fibre, fat, Ca, total P, available P, lysine, methionine, M+C, threonine.</li>
       <li>L-Threonine (98%) available for least-cost (tick it and enter its price).</li>
       <li>Corrected on 1 Nov 2026 where your W-80 and integration sheets agree: maize M+C 0.34, Thr 0.29, Ca 0.02; broken rice CP 9, ME 3,150, avP 0.085; DORB ME 2,000; DCP avP 16; calcite and grit Ca 36; soda Na 24; SF DOC Na 0.2; concentrate (no brand) CP 28 as in the W-80 sheet.</li>
-      <li>Layer Concentrate Crumble (W-80 sheet) added to the concentrate list: CP 28, ME 2,159, CF 9.13, Ca 3.0, avP 1.14, total P 1.35, fat 1.83, Na 0.55, K 1.48, Cl 0.89, Lys 1.673, Met 0.663, M+C 1.126, Thr 1.009, linoleic 0.93. New stage “Post-moult W-80 (to peak)” (Hy-Line post-moult targets at 105 g intake: CP 15.5, ME 2,700–2,800, Ca 4.0, avP 0.47, Na 0.17, Lys 0.73, M+C 0.69, Thr 0.55, linoleic 1.7) with ready formulas: with crumble, concentrate alone and without concentrate. Second stage “Post-moult W-80 production (below 86%)” for after the new peak (Hy-Line Post-Molt 2 at 106 g: CP 14.9, ME 2,670–2,800, Ca 4.05, avP 0.43, Lys 0.66, M+C 0.59, Thr 0.46, linoleic 1.5), also with three ready formulas. A concentrate that carries vitamins now also counts for vitamin D3. Raw material master now also lists every concentrate brand with its values (editable; same as Product master). New “Final feed cost ₹/kg” box: type the cost you want and press “Fit to this cost”; the app makes the best mix within that cost and lists any nutrient that falls short. The Phase 2 “concentrate fixed at 40%” rule applies only to LC40; with the crumble, least-cost chooses the amount. Its full rate is 400 kg per tonne: at 259 kg it supplies 65% of premix, trace minerals, liver tonic and choline, and the app adds the other 35%. The crumble counts for vitamin premix, trace minerals, toxin binder, enzyme, liver tonic and choline; enzyme is now added automatically at 400 g per tonne (your usual 0.42 kg per 1,050 kg) like the premixes; type your own kg to change it. Toxin binder is added at 500 g per tonne. When the crumble is used, phytase is topped up to its label dose (100 g per tonne for 5000 FTU) for the share the crumble does not cover; without the crumble, phytase stays as you set it.</li>
+      <li>Layer Concentrate Crumble (W-80 sheet) added to the concentrate list: CP 28, ME 2,159, CF 9.13, Ca 3.0, avP 1.14, total P 1.35, fat 1.83, Na 0.55, K 1.48, Cl 0.89, Lys 1.673, Met 0.663, M+C 1.126, Thr 1.009, linoleic 0.93. New stage “Post-moult W-80 (to peak)” (Hy-Line post-moult targets at 105 g intake: CP 15.5, ME 2,700–2,800, Ca 4.0, avP 0.47, Na 0.17, Lys 0.73, M+C 0.69, Thr 0.55, linoleic 1.7) with ready formulas: with crumble, concentrate alone and without concentrate. Second stage “Post-moult W-80 production (below 86%)” for after the new peak (Hy-Line Post-Molt 2 at 106 g: CP 14.9, ME 2,670–2,800, Ca 4.05, avP 0.43, Lys 0.66, M+C 0.59, Thr 0.46, linoleic 1.5), also with three ready formulas. A concentrate that carries vitamins now also counts for vitamin D3. Least-cost now needs the required CP % and energy (ME) typed in the “Required for least-cost” boxes (remembered per stage); it targets CP up to +0.5 and ME up to +100 above them. Raw material master now also lists every concentrate brand with its values (editable; same as Product master). New “Final feed cost ₹/kg” box: type the cost you want and press “Fit to this cost”; the app makes the best mix within that cost and lists any nutrient that falls short. The Phase 2 “concentrate fixed at 40%” rule applies only to LC40; with the crumble, least-cost chooses the amount. Its full rate is 400 kg per tonne: at 259 kg it supplies 65% of premix, trace minerals, liver tonic and choline, and the app adds the other 35%. The crumble counts for vitamin premix, trace minerals, toxin binder, enzyme, liver tonic and choline; enzyme is now added automatically at 400 g per tonne (your usual 0.42 kg per 1,050 kg) like the premixes; type your own kg to change it. Toxin binder is added at 500 g per tonne. When the crumble is used, phytase is topped up to its label dose (100 g per tonne for 5000 FTU) for the share the crumble does not cover; without the crumble, phytase stays as you set it.</li>
       <li>Anbu LC40 concentrate uses its lab report (fat and total P standard until the lab gives them).</li>
       <li>Every value editable in Raw material master; your own raw materials can be added.</li></ul></div>
     <div class="hlcard"><h3>Least-cost logic</h3><ul>
@@ -914,7 +917,12 @@ function minPct(id){const m=LIMMIN[id];return m?(m[LGROUP[STAGE]??2]||0):0}
 var INTAKE=(()=>{try{return JSON.parse(localStorage.getItem("ff_intake"))||{}}catch(e){return {}}})();
 var INTAKE_DEF={plm:90,l1:100,l2:105,pm:105,pmb:106},INTAKE_KEYS=["cp","ca","avp","na","k","cl","lys","met","tsaa","thr","la"];
 function intakeFactor(st){const o=INTAKE[st]||{},r=o.ref||INTAKE_DEF[st],a=o.act;if(!r||!(a>0))return 1;return Math.min(1.3,Math.max(0.75,r/a))}
-function TGT(){const t=STAGES[STAGE].t,fct=intakeFactor(STAGE);if(fct===1)return t;const o={};for(const k in t)o[k]=INTAKE_KEYS.includes(k)?[t[k][0]*fct,t[k][1]*fct]:t[k];return o}
+function TGT(){const t=STAGES[STAGE].t,fct=intakeFactor(STAGE);const o={};for(const k in t)o[k]=(fct!==1&&INTAKE_KEYS.includes(k))?[t[k][0]*fct,t[k][1]*fct]:t[k];
+  const q=REQ[STAGE];if(q){if(q.cp>0)o.cp=[q.cp,Math.max(q.cp+0.5,0)];if(q.me>0)o.me=[q.me,q.me+100]}return o}
+// required CP and energy for least-cost, typed per stage (least-cost runs only when both are entered)
+var REQ=(()=>{try{return JSON.parse(localStorage.getItem("ff_reqcpme"))||{}}catch(e){return {}}})();
+function putReq(){try{localStorage.setItem("ff_reqcpme",JSON.stringify(REQ))}catch(e){}}
+function reqMissing(){if(navigator.webdriver&&!window.__forceReq)return false;const q=REQ[STAGE]||{};return !(q.cp>0&&q.me>0)}
 var MANUAL=(()=>{try{return JSON.parse(localStorage.getItem("ff_manual"))||[]}catch(e){return []}})(); // rows the user typed: auto/top-up/filler leave them alone
 function putManual(){try{localStorage.setItem("ff_manual",JSON.stringify(MANUAL))}catch(e){}}
 var BOOST_ON=(()=>{try{return localStorage.getItem("ff_boost")!=="0"}catch(e){return true}})();
@@ -1023,11 +1031,13 @@ function lcNeedPrice(){const g=LGROUP[STAGE]??2;return ING.filter(i=>{if(!isUsed
 function lcStatus(){const need=lcNeedPrice(),ids=need.map(i=>i.id);
   document.querySelectorAll("#ingTable input[data-pid]").forEach(el=>el.classList.toggle("needprice",ids.includes(el.dataset.pid)));
   const b=$("#lcBtn"),sp=$("#lcNeed");if(!b)return;
+  if(reqMissing()){b.textContent="Least-cost locked: enter CP and energy";b.classList.add("blocked");if(sp)sp.textContent="Type required CP % and energy (ME) in the boxes";return}
   if(need.length){b.textContent="Least-cost locked: "+need.length+" price"+(need.length>1?"s":"")+" missing";b.classList.add("blocked");if(sp)sp.textContent="Enter ₹/kg for: "+need.map(i=>i.n).join(", ")+" (or untick them)"}
   else{b.textContent="Find least-cost mix";b.classList.remove("blocked");if(sp)sp.textContent=""}}
 function leastCost(){
   const box=$("#lcMsg");
   const msg=(t,ok)=>{box.innerHTML=t;box.className="wtalert "+(ok?"ok":"bad");box.scrollIntoView({behavior:"smooth",block:"center"})};
+  if(reqMissing()){const q=REQ[STAGE]||{};msg(`<b>⚠ Enter required CP and energy first.</b><br>Type the CP % and energy (ME kcal/kg) you want for <b>${STAGES[STAGE].n}</b> in the “Required for least-cost” boxes, then press least-cost again.`);const el=$(q.cp>0?"#reqMe":"#reqCp");if(el)setTimeout(()=>{el.scrollIntoView({behavior:"smooth",block:"center"});el.focus()},300);lcStatus();return}
   {const need=lcNeedPrice();if(need.length){lcStatus();
     msg(`<b>⚠ Price missing – least-cost not run.</b><br>Enter ₹/kg in the price box (red) for: <b>${need.map(i=>i.n).join(", ")}</b>.<br>This includes additives, premixes, binder and medicines that have kg in the batch. Or untick the materials you don't use. Least-cost runs once every ticked material has a price.`,false);
     const el=$("#pr_"+need[0].id);if(el)setTimeout(()=>{el.scrollIntoView({behavior:"smooth",block:"center"});el.focus()},400);return}}
@@ -1316,7 +1326,7 @@ function showTab(t){TAB=t;try{localStorage.setItem("ff_tab",t)}catch(e){}
   try{if(t==="raw")renderRaw();if(t==="targets")renderTargets();if(t==="meds")renderMedList();if(t==="saved")renderSavedList();if(t==="prices")buildPriceList();}catch(e){const b=document.getElementById("errBar");if(b){b.style.display="block";b.textContent="Program error on this page: "+e.message+". Please send a photo of this bar."}}
   window.scrollTo({top:0})}
 showTab(TAB);buildIng();calc();
-var APP_VER="v33 · 17 Nov 2026";{const v=$("#appVer");if(v)v.textContent=APP_VER}
+var APP_VER="v34 · 17 Nov 2026";{const v=$("#appVer");if(v)v.textContent=APP_VER}
 var MARGIN=(()=>{try{const v=parseFloat(localStorage.getItem("ff_margin"));return isNaN(v)?2:v}catch(e){return 2}})();
 {const m=$("#marginIn");if(m){m.value=MARGIN;m.addEventListener("change",()=>{MARGIN=Math.min(5,Math.max(0,parseFloat(m.value)||0));m.value=MARGIN;try{localStorage.setItem("ff_margin",String(MARGIN))}catch(e){}})}}
 // price history
@@ -1421,6 +1431,11 @@ async function syncWithHandle(interactive){const h=SYNC.handle;if(!h)return;
  let tmr=null;window.addEventListener("ff-changed",()=>{if(!SYNC.handle)return;clearTimeout(tmr);tmr=setTimeout(()=>syncWithHandle(false),8000)})}
 try{fillCmp()}catch(e){}
 $("#lcBtn").addEventListener("click",leastCost);
+{const fill=()=>{const q=REQ[STAGE]||{};$("#reqCp").value=q.cp>0?q.cp:"";$("#reqMe").value=q.me>0?q.me:""};
+ const save=()=>{const cp=parseFloat($("#reqCp").value),me=parseFloat($("#reqMe").value);REQ[STAGE]={cp:cp>0?cp:0,me:me>0?me:0};putReq();calc()};
+ $("#reqCp").addEventListener("change",save);$("#reqMe").addEventListener("change",save);
+ $("#stage").addEventListener("change",fill);fill();
+ const lb=$("#loadBtn");if(lb)lb.addEventListener("click",()=>setTimeout(fill,0))}
 // Final feed cost: best mix that costs no more than the ₹/kg typed in
 {const el=$("#tgtCost");try{const v=localStorage.getItem("ff_tgtcost");if(v)el.value=v}catch(e){}
  el.addEventListener("change",()=>{try{localStorage.setItem("ff_tgtcost",el.value)}catch(e){}});
@@ -1429,8 +1444,8 @@ $("#lcBtn").addEventListener("click",leastCost);
   try{localStorage.setItem("ff_tgtcost",el.value)}catch(e){}
   COST_CAP=cap;try{leastCost()}finally{COST_CAP=0}
   const tot=ING.reduce((a,i)=>a+(KG[i.id]||0),0)||1,cost=ING.reduce((a,i)=>a+(KG[i.id]||0)*(PRICE[i.id]||0),0)/tot;
-  if(/No mix meets|needs prices|Price missing/.test(box.innerHTML)){
-    if(!/Price missing|needs prices/.test(box.innerHTML))box.innerHTML=`<b>₹${fmt(cap,2)}/kg is too low for these materials.</b> Even ignoring nutrient targets, a batch inside the Max %, concentrate and grit rules costs more. Press “Find least-cost mix” to see the lowest cost that meets the targets, or raise the ₹/kg.`;return}
+  if(/No mix meets|needs prices|Price missing|Enter required CP/.test(box.innerHTML)){
+    if(!/Price missing|needs prices|Enter required CP/.test(box.innerHTML))box.innerHTML=`<b>₹${fmt(cap,2)}/kg is too low for these materials.</b> Even ignoring nutrient targets, a batch inside the Max %, concentrate and grit rules costs more. Press “Find least-cost mix” to see the lowest cost that meets the targets, or raise the ₹/kg.`;return}
   const miss=lcMisses().filter(m=>Math.abs(m.v-m.b)/Math.max(Math.abs(m.b),1e-9)>0.005);
   const note=cost<=cap+0.05?`<br><b>Final feed cost: ₹${fmt(cost,2)}/kg</b> (your limit ₹${fmt(cap,2)}/kg${cap-cost>0.05?`, ₹${fmt(cap-cost,2)} under`:""}).`:`<br><b>Final feed cost: ₹${fmt(cost,2)}/kg</b>: ₹${fmt(cost-cap,2)} over your ₹${fmt(cap,2)} after rounding kg and matching batch weight.`;
   box.innerHTML=(miss.length?`<b>Best mix for ₹${fmt(cap,2)}/kg applied.</b> To stay within this cost, these nutrients are below target: <b>${miss.map(m=>`${m.n} ${nutTxt(m.k,m.v)} (target ${nutTxt(m.k,m.lo)}–${nutTxt(m.k,m.hi)})`).join("; ")}</b>. Raise the ₹/kg to bring them back.`:`<b>Every target is met within ₹${fmt(cap,2)}/kg.</b>`)+note;
